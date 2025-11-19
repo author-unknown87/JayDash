@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("JayDash")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ca42afd5c011c0661865a59013ea4c3389fabd65")]
 [assembly: System.Reflection.AssemblyProductAttribute("JayDash")]
 [assembly: System.Reflection.AssemblyTitleAttribute("JayDash")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

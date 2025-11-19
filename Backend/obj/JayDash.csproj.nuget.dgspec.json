@@ -1,20 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Work\\JayDash\\JayDash\\JayDash\\JayDash.csproj": {}
+    "D:\\Work\\JayDash\\Backend\\JayDash.csproj": {}
   },
   "projects": {
-    "D:\\Work\\JayDash\\JayDash\\JayDash\\JayDash.csproj": {
+    "D:\\Work\\JayDash\\Backend\\JayDash.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Work\\JayDash\\JayDash\\JayDash\\JayDash.csproj",
+        "projectUniqueName": "D:\\Work\\JayDash\\Backend\\JayDash.csproj",
         "projectName": "JayDash",
-        "projectPath": "D:\\Work\\JayDash\\JayDash\\JayDash\\JayDash.csproj",
+        "projectPath": "D:\\Work\\JayDash\\Backend\\JayDash.csproj",
         "packagesPath": "C:\\Users\\daemo\\.nuget\\packages\\",
-        "outputPath": "D:\\Work\\JayDash\\JayDash\\JayDash\\obj\\",
+        "outputPath": "D:\\Work\\JayDash\\Backend\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "D:\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
           "C:\\Users\\daemo\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -34,7 +38,13 @@
           "warnAsError": [
             "NU1605"
           ]
-        }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.100"
       },
       "frameworks": {
         "net8.0": {
@@ -84,7 +94,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.100/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
