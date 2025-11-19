@@ -1,0 +1,6 @@
+@JayDash_HostAddress = http://localhost:5198
+
+GET {{JayDash_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
