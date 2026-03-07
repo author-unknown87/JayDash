@@ -1,9 +1,16 @@
+.BannerImage{
+    height: 12rem;
+    width: 100%;
+    background-image: url(../../assets/HomePattern.JPG);
+    background-repeat: repeat;
+}
+
 .ContactCardGrid {
     display: flex;
     flex-wrap: wrap;
     gap: 2rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding-right: 2rem;
+    padding-top: 1rem;
 }
 
 .ContactCard {
@@ -12,4 +19,19 @@
 
 .ContactCardTitle {
     background-color: var(--stone-400);
+}
+
+.Main {
+    padding-left: 1rem;
+    padding-top: 1rem;
+}
+
+.Main p {
+    margin-right: 2rem;
+}
+
+.Main h1 {
+    font-size: 1.75rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
 }
