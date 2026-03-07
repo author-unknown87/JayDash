@@ -1,0 +1,15 @@
+.ContactCardGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.ContactCard {
+    flex: 0 0 calc(50% - 2rem)
+}
+
+.ContactCardTitle {
+    background-color: var(--stone-400);
+}
