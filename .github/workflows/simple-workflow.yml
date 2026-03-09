@@ -4,8 +4,9 @@ name: Hello-World-Test
 
 # Controls when the workflow will run
 on:
+  workflow_dispatch:
   schedule:
-    - cron: '3 6 * * *'
+    - cron: '10 6 * * *'
 
 jobs:
   print-hello:
