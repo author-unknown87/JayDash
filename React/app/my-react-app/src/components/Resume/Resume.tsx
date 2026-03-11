@@ -2,11 +2,11 @@ import Header from '../Header/Header'
 import styles from './Resume.module.scss'
 import ResumeAccordion from './ResumeAccordion/ResumeAccordion'
 import { PaperclipIcon } from 'lucide-react'
+import resume from '../../assets/files/Resume.pdf';
 
 import {
     Alert,
-    AlertDescription,
-    AlertTitle
+    AlertDescription
  } from "../ui/alert"
 
 export default function Resume() {
@@ -20,7 +20,7 @@ export default function Resume() {
                 <Alert className={styles.DownloadAlert}>
                     <PaperclipIcon />
                     <AlertDescription>
-                        Download Resume as .PDF
+                        <a href={resume} download>Download Resume as .PDF</a>
                     </AlertDescription>
                 </Alert>
                 <ResumeAccordion />

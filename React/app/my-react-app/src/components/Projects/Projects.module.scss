@@ -1,3 +1,14 @@
 .Main {
     flex: 1;
 }
+
+.Main h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-left: 2rem;
+}
+
+.ProjectCardGallery {
+    display: flex;
+    flex-wrap: wrap;
+}
