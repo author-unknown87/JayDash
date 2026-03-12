@@ -1,3 +1,5 @@
+@import '../../styles/variables';
+
 .BannerImage{
     height: 12rem;
     width: 100%;
@@ -18,12 +20,9 @@
     flex: 0 0 calc(50% - 2rem)
 }
 
-.ContactCardTitle {
-    background-color: var(--stone-400);
-}
-
 .Main {
     flex: 1;
+    background-color: $background;
 }
 
 .Main p {

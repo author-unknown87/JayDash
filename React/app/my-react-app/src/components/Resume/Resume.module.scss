@@ -1,5 +1,8 @@
+@import '../../styles/variables';
+
 .Main {
     flex: 1;
+    background-color: $background;
 }
 .Main h1 {
     font-size: 1.75rem;

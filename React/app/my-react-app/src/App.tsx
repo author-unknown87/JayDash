@@ -1,6 +1,6 @@
 import './App.css'
 import { SidebarProvider, SidebarTrigger} from './components/ui/sidebar';
-import { AppSidebar } from './components/app-sidebar';
+import { AppSidebar } from './components/Sidebar/app-sidebar';
 import { useState } from 'react'
 import { Pages } from './models/enums';
 import Home from './components/Home/Home';

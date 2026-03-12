@@ -23,16 +23,9 @@ import {
  } from "../../ui/card"
 
  import styles from './ResumeAccordion.module.scss'
- import { differenceInMonths } from "date-fns"
+ import ResumeTableRow from "./TableRow/ResumeTableRow"
 
 export default function ResumeAccordion() {
-    function getYearsAndMonthsDifference(startDate: Date):string {
-        const today = new Date()
-        const months = differenceInMonths(today, startDate);
-        const years = Math.floor(months / 12);
-        const monthsLeft = months % 12;
-        return `${years} years, ${monthsLeft} mo.`
-    }
 
     return (
         <>
@@ -40,42 +33,20 @@ export default function ResumeAccordion() {
                 <AccordionItem value="skills" className={styles.AccordionItem}>
                     <AccordionTrigger className={styles.AccordionTrigger}>Technical Skills</AccordionTrigger>
                     <AccordionContent>
-                        <Table>
+                        <Table className="mb-4">
                             <TableHeader>
-                                <TableRow>
+                                <TableRow className={styles.TableRow}>
                                     <TableHead>Skill name</TableHead>
                                     <TableHead>Years of Experience</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow>
-                                    <TableCell>C#</TableCell>
-                                    <TableCell>{getYearsAndMonthsDifference(new Date("2020-01-06"))}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>.NET</TableCell>
-                                    <TableCell>{getYearsAndMonthsDifference(new Date("2020-01-06"))}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>SQL</TableCell>
-                                    <TableCell>{getYearsAndMonthsDifference(new Date("2020-01-06"))}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>React / Javascript</TableCell>
-                                    <TableCell>{getYearsAndMonthsDifference(new Date("2024-06-10"))}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>Entity Framework</TableCell>
-                                    <TableCell>{getYearsAndMonthsDifference(new Date("2024-01-10"))}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>CI/CD Pipelines</TableCell>
-                                    <TableCell>{getYearsAndMonthsDifference(new Date("2026-03-01"))}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>Python</TableCell>
-                                    <TableCell>{getYearsAndMonthsDifference(new Date("2026-02-14"))}</TableCell>
-                                </TableRow>
+                                <ResumeTableRow skillName="C#" startDate="01-06-2020"/>
+                                <ResumeTableRow skillName=".NET" startDate="01-06-2020"/>
+                                <ResumeTableRow skillName="SQL" startDate="01-06-2020"/>
+                                <ResumeTableRow skillName="React" startDate="06-10-2024"/>
+                                <ResumeTableRow skillName="CI/CD Pipelines" startDate="03-01-2026"/>
+                                <ResumeTableRow skillName="Python" startDate="03-01-2026"/>
                             </TableBody>
                         </Table>
                         <Card>

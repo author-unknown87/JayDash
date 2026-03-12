@@ -1,5 +1,8 @@
+@import '../../styles/variables';
+
 .Main {
     flex: 1;
+    background-color: $background;
 }
 
 .Content {
