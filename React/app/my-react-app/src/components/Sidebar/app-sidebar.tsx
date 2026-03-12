@@ -1,6 +1,7 @@
-import { Pages } from "../models/enums";
-import { SidebarItems } from "../models/SidebarItems"
+import { Pages } from "../../models/enums";
+import { SidebarItems } from "../../models/SidebarItems"
 import { Home, BookType, Headset, Folder} from "lucide-react"
+import styles from './app-sidebar.module.scss'
 
 import {
     Sidebar,
@@ -11,7 +12,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem
-} from "./ui/sidebar";
+} from "../ui/sidebar";
 
 const items = [
     {
@@ -49,7 +50,7 @@ export function AppSidebar({
 }: SidebarProps) {
     return (
         <Sidebar>
-            <SidebarContent>
+            <SidebarContent className={styles.Sidebar}>
                 <SidebarGroup>
                     <SidebarGroupLabel>Joshua Gravatt's Site</SidebarGroupLabel>
                     <SidebarGroupContent>

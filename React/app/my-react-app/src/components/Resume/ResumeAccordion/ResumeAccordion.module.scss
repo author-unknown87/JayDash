@@ -1,0 +1,32 @@
+@import '../../../styles/variables';
+
+.AccordionItem {
+    background-color: $panel;
+    border-bottom: 2px solid $accent;
+    flex: 1;
+    max-width: 80%;
+    margin-left: 1rem;
+    padding: 0.5rem;
+}
+
+.AccordionTrigger:hover {
+    cursor: pointer;
+}
+
+.HistoryDetails {
+    display: flex;
+}
+
+.JobTitle {
+    width: 40%;
+}
+
+.Timeline {
+    width: 30%;
+    margin-left: auto;
+    text-align: right;
+}
+
+.JobCard {
+    margin-bottom: 1rem;
+}

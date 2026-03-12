@@ -1,0 +1,25 @@
+@import '../../styles/variables';
+
+.Main {
+    flex: 1;
+    background-color: $background;
+}
+.Main h1 {
+    font-size: 1.75rem;
+    font-weight: bold;
+    margin-left: 1rem;
+}
+
+.Main p {
+    margin-left: 1rem;
+}
+
+.DownloadAlert {
+    max-width: 15rem;
+    margin: 1rem;
+    background-color: beige;
+}
+
+.DownloadAlert:hover {
+    cursor: pointer;
+}

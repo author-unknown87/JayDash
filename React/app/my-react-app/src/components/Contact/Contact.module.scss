@@ -1,15 +1,38 @@
+@import '../../styles/variables';
+
+.BannerImage{
+    height: 12rem;
+    width: 100%;
+    background-image: url(../../assets/HomePattern.JPG);
+    background-repeat: repeat;
+}
+
 .ContactCardGrid {
     display: flex;
     flex-wrap: wrap;
     gap: 2rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding-right: 2rem;
+    padding-top: 1rem;
+    margin-left: 2rem;
 }
 
 .ContactCard {
     flex: 0 0 calc(50% - 2rem)
 }
 
-.ContactCardTitle {
-    background-color: var(--stone-400);
+.Main {
+    flex: 1;
+    background-color: $background;
+}
+
+.Main p {
+    margin-right: 2rem;
+    margin-left: 2rem;
+}
+
+.Main h1 {
+    font-size: 1.75rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    margin-left: 2rem;
 }

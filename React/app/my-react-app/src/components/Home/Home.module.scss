@@ -1,6 +1,8 @@
-.BannerImage img{
-    height: 20rem;
-    width: 100%;
+@import '../../styles/variables';
+
+.Main {
+    flex: 1;
+    background-color: $background;
 }
 
 .Content {
@@ -11,4 +13,16 @@
 .Content h1 {
     font-size: 2rem;
     margin-bottom: 1rem;
+}
+
+.AboutMeWrap {
+    display: flex;
+    padding-right: 2rem;
+}
+
+.AboutMeWrap img {
+    margin-right: 2rem;
+    border-radius: 20px;
+    height: 300px;
+    width: auto;
 }
