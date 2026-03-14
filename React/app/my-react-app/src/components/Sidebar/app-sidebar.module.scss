@@ -4,3 +4,9 @@
     background:
         linear-gradient(to left, #dce3f1, $surface) border-box;
 }
+
+.SidebarIcon {
+    height: auto;
+    width: 1.75rem;
+    color: $text;
+}
