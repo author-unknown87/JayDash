@@ -87,7 +87,7 @@ export default function ResumeAccordion() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dapibus ipsum nec sapien blandit tristique. Etiam diam mi, accumsan malesuada sem vitae, interdum cursus arcu. Mauris eu hendrerit eros. Nulla vitae augue at arcu congue pulvinar in suscipit risus. Quisque vulputate ac lacus nec tristique. In ultricies consectetur tellus, a mollis felis vehicula sit amet. Ut porta euismod mauris, sed ultricies orci scelerisque sit amet. Praesent laoreet nunc in mi tincidunt accumsan. Morbi vehicula libero eget magna tristique, ut luctus justo luctus. Curabitur porttitor iaculis quam, a efficitur metus.</p>
+                                <p>Full stack feature development supporting Kardex’s Warehouse Execution System (WES) product known as KFX.  Responsible for working assigned full-slice sprint tasks, encompassing everything from SQL updates through C# orchestration changes and frontend React updates, including changes to existing documentation or creation of new documentation where none existed.  Sprint work completed often includes spikes to investigate and design customer feature requests.  Frequent participation in regression testing cycles to assist QA across the finish line.  Occasional travel to customer sites to assist with onsite testing and KFX setup.</p>
                             </CardContent>
                         </Card>
                         <Card className={styles.JobCard}>
