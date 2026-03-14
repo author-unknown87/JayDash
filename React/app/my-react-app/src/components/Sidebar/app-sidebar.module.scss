@@ -1,6 +1,6 @@
 @import '../../styles/variables';
 
 .Sidebar {
-    background-color: $surface;
-    color: $text;
+    background:
+        linear-gradient(to left, #dce3f1, $surface) border-box;
 }
