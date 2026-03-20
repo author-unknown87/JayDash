@@ -16,23 +16,16 @@ public class SystemConfigurationRepository : ISystemConfigurationRepository
     
     public async Task<SystemConfigurationModel?> GetConfigurationByName(string name, CancellationToken cancellationToken = default)
     {
-        try {
-            var context = _contextFactory.CreateContext();
+        var context = _contextFactory.CreateContext();
 
-            var config = await context.SystemConfigurations.Where(sc => sc.Name == name)
-                .Select(sc => new SystemConfigurationModel
-                {
-                    PrimaryKey = sc.PrimaryKey,
-                    Name = sc.Name,
-                    Value = sc.Value
-                }).FirstOrDefaultAsync(cancellationToken);
+        var config = await context.SystemConfigurations.Where(sc => sc.Name == name)
+            .Select(sc => new SystemConfigurationModel
+            {
+                PrimaryKey = sc.PrimaryKey,
+                Name = sc.Name,
+                Value = sc.Value
+            }).FirstOrDefaultAsync(cancellationToken);
 
-            return config;
-
-        } catch (Exception ex)
-        {
-            // LOGGING
-            throw;
-        }
+        return config;
     }
 }

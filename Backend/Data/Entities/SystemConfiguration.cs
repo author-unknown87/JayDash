@@ -19,6 +19,7 @@ namespace JayDash.Data
         {
             modelBuilder.Entity<SystemConfiguration>(entity =>
             {
+                entity.ToTable("SystemConfiguration");
                 entity.HasKey("PrimaryKey");
             });
         }

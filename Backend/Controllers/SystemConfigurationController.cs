@@ -1,5 +1,4 @@
-﻿using JayDash.Data.Interfaces;
-using JayDash.Repositories.Interfaces;
+﻿using JayDash.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JayDash.Controllers
