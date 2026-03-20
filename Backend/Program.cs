@@ -1,5 +1,8 @@
-using Microsoft.EntityFrameworkCore;
 using JayDash.Data;
+using JayDash.Data.Interfaces;
+using JayDash.Middleware;
+using JayDash.Repositories;
+using JayDash.Repositories.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +12,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost",
@@ -17,6 +20,12 @@ builder.Services.AddCors(options =>
         .AllowAnyMethod()
         .AllowAnyOrigin());
 });
+
+// Register Services
+builder.Services.AddSingleton<IAppDbContextFactory, AppDbContextFactory>();
+
+// Register Repositories
+builder.Services.AddTransient<ISystemConfigurationRepository, SystemConfigurationRepository>();
 
 var app = builder.Build();
 
@@ -27,7 +36,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseAuthorization();
 

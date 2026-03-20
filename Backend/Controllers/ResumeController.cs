@@ -1,4 +1,4 @@
-﻿using JayDash.Data;
+﻿using JayDash.Data.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JayDash.Controllers
@@ -7,17 +7,19 @@ namespace JayDash.Controllers
     [ApiController]
     public class ResumeController : ControllerBase
     {
-        private readonly AppDbContext dbContext;
+        private readonly IAppDbContextFactory _contextFactory;
 
-        public ResumeController(AppDbContext context)
+        public ResumeController(IAppDbContextFactory contextFactory)
         {
-            this.dbContext = context;
+            _contextFactory = contextFactory;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetWorkplaceByKey(int workplacePrimaryKey)
         {
-            var workplace = this.dbContext.Workplaces
+            using var context = _contextFactory.CreateContext();
+
+            var workplace = context.Workplaces
                 .FirstOrDefault(w => w.PrimaryKey == workplacePrimaryKey);
 
             return Ok(workplace);
