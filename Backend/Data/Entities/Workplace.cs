@@ -24,6 +24,7 @@ namespace JayDash.Data
             modelBuilder.Entity<Workplace>(entity =>
             {
                 entity.HasKey("PrimaryKey");
+                entity.ToTable("Workplaces");
             });
         }
     }
