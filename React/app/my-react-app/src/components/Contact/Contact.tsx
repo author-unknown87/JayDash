@@ -16,19 +16,13 @@ export default function Contact() {
                         className={Styles.ContactCard}
                         title="Phone Number"
                         description="Call or text, I have no personal preference"
-                        content="513-515-0842"
+                        content={"513-515-0842"}
                     />
                     <ContactCard 
                         className={Styles.ContactCard}
                         title="Email"
                         description="Checked at least once daily"
-                        content="j.gravatt87@gmail.com"
-                    />
-                    <ContactCard 
-                        className={Styles.ContactCard}
-                        title="LinkedIn"
-                        description="Checked less often, maybe once every couple of days"
-                        content="www.linkedin.com"
+                        content={"j.gravatt87@gmail.com"}
                     />
                 </div>
             </div>

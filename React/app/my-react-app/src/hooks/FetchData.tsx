@@ -1,10 +1,59 @@
-import { useEffect, useState} from "react"
 import axios from "axios";
+import { HttpAction } from "../models/enums";
 
-export default async function FetchData() {
+interface KeyValuePair {
+    key: string;
+    value: string;
+}
+
+interface FetchDataProps {
+    endpoint: string
+    action: string,
+    parameters: KeyValuePair[];
+}
+
+/** Local constants */
+const baseUrl = "http://localhost:5000/api/";
+
+function buildURL(endpoint: string, parameters: KeyValuePair[]): string {
+    let address = baseUrl + endpoint;
+    if (parameters.length > 0) address = address + "?";
+    parameters.map((parameter, idx) => {
+        address = address + parameter.key + "=" + parameter.value;
+        if (idx != parameters.length - 1) {
+            // not at the end yet
+            address = address + "&";
+        }
+    })
+
+    return address;
+}
+
+export default async function FetchData({
+    endpoint,
+    action,
+    parameters
+}: FetchDataProps) {
     try {
-        const res = await axios.get("http://localhost:5000/api/SystemConfiguration?configName=SeekingPosition")
-        console.log(res);
+        const address = buildURL(endpoint, parameters);
+
+        let response = undefined;
+        switch(action) {
+            case HttpAction.Get:
+                response = await axios.get(address)
+                break;
+            case HttpAction.Post:
+                // do a post here
+                break;
+            case HttpAction.Delete:
+                // do a delete here
+                break;
+            default:
+                // return an error
+                break;
+        }
+
+        return response;
     } catch (err) {
         console.error(err);
     }

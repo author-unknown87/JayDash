@@ -14,12 +14,41 @@
     margin-left: 1rem;
 }
 
-.DownloadAlert {
-    max-width: 15rem;
+.Alert {
+    max-width: 25rem;
     margin: 1rem;
+}
+
+.DownloadAlert {
     background-color: beige;
 }
 
 .DownloadAlert:hover {
     cursor: pointer;
+}
+
+.DownloadAlert a {
+    font-size: 1.05rem;
+}
+
+.SeekingPositionAlert {
+    background-color: $accent-two;
+}
+
+.SeekingPositionAlert p {
+    color: #000;
+    font-size: 1.05rem;
+}
+
+.AlertIcon {
+    height: auto;
+    width: 1.15rem;
+}
+
+.AlertsContainer{
+    display: flex;
+}
+
+.NotSeeking {
+    display: none;
 }

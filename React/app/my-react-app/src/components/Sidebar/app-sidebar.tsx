@@ -3,6 +3,8 @@ import { SidebarItems } from "../../models/SidebarItems"
 import { Home, BookType, Headset, Folder} from "lucide-react"
 import styles from './app-sidebar.module.scss'
 import { MarkGithubIcon } from "@primer/octicons-react";
+import { FaLinkedin } from 'react-icons/fa';
+
 
 import {
     Sidebar,
@@ -45,6 +47,12 @@ const items = [
         url: "https://github.com/author-unknown87/JayDash",
         icon: Folder,
         page: ""
+    },
+    {
+        title: "Linkedin",
+        url: "https://www.linkedin.com/in/joshua-gravatt-a45b53139",
+        icon: Folder,
+        page: ""
     }
 ] satisfies readonly SidebarItems[]
 
@@ -64,19 +72,22 @@ export function AppSidebar({
                         <SidebarMenu>
                             {items.map((item) => {
                                 const isGithubLink = item.title === "Github";
+                                const isLinkedInLink = item.title === "Linkedin";
+                                const Icon = (isGithubLink) ? MarkGithubIcon : item.icon;
+                                
 
-                                const Icon = isGithubLink ? MarkGithubIcon : item.icon;
                                 return (
                                     <SidebarMenuItem key={item.title}
                                         className="ml-2 my-3"
                                     >
                                         <SidebarMenuButton className="h-12" onClick={() => {
-                                            if (!isGithubLink) {
+                                            if (!isGithubLink && !isLinkedInLink) {
                                                 onClick(item.page)
                                             }
                                         }}>
-                                            <a href={item.url} target={isGithubLink ? "_blank" : ""} className="w-full">
-                                                <Icon className={styles.SidebarIcon}/>         
+                                            <a href={item.url} target={isGithubLink || isLinkedInLink? "_blank" : ""} className="w-full">
+                                                {!isLinkedInLink && <Icon className={styles.SidebarIcon}/>}
+                                                {isLinkedInLink && <FaLinkedin className={styles.SidebarIcon} />}
                                                 <span>{item.title}</span>
                                             </a>
                                         </SidebarMenuButton>
