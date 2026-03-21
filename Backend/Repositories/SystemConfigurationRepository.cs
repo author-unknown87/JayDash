@@ -1,24 +1,16 @@
-﻿using JayDash.Data.Interfaces;
+﻿using JayDash.Data;
 using JayDash.Data.Models;
 using JayDash.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace JayDash.Repositories;
 
-public class SystemConfigurationRepository : ISystemConfigurationRepository
+public class SystemConfigurationRepository(AppDbContext appDbContext) : ISystemConfigurationRepository
 {
-    private IAppDbContextFactory _contextFactory { get; set; }
-
-    public SystemConfigurationRepository(IAppDbContextFactory dbContextFactory)
-    {
-        _contextFactory = dbContextFactory;
-    }
     
     public async Task<SystemConfigurationModel?> GetConfigurationByName(string name, CancellationToken cancellationToken = default)
     {
-        var context = _contextFactory.CreateContext();
-
-        var config = await context.SystemConfigurations.Where(sc => sc.Name == name)
+        var config = await appDbContext.SystemConfigurations.Where(sc => sc.Name == name)
             .Select(sc => new SystemConfigurationModel
             {
                 PrimaryKey = sc.PrimaryKey,

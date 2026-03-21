@@ -1,20 +1,18 @@
 ﻿using JayDash.Data;
-using System.Runtime.CompilerServices;
+using JayDash.Repositories.Interfaces;
 
-namespace JayDash.Services
+namespace JayDash.Services;
+
+public class ResumeService(IWorkplaceRepository workplaceRepository)
 {
-    public class ResumeService
+    public async Task GetResume()
     {
-        private readonly AppDbContext dbContext;
+        // Get workplaces
 
-        public ResumeService(AppDbContext dbContext)
-        {
-            this.dbContext = dbContext;
-        }
 
-        public async Task GetResume()
-        {
+        // Get skillset
 
-        }
+
+        // Get Education
     }
 }

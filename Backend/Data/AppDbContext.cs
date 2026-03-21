@@ -9,7 +9,7 @@ namespace JayDash.Data
 
         // Database Sets
 
-        public DbSet<Workplaces> Workplaces { get; set; }
+        public DbSet<Workplace> Workplaces { get; set; }
         public DbSet<SystemConfiguration> SystemConfigurations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
