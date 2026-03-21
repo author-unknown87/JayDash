@@ -4,3 +4,9 @@ export const Pages = {
     Resume: "Resume",
     Projects: "Projects"
 }
+
+export const HttpAction = {
+    Get: "GET",
+    Post: "POST",
+    Delete: "DELETE"
+} as const;

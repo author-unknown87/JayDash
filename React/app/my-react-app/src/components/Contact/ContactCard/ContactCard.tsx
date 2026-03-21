@@ -1,3 +1,4 @@
+import { ReactElement } from "react"
 import { 
      Card 
     ,CardContent
@@ -11,7 +12,7 @@ import {
 interface ContactCardProps {
     title: string,
     description: string,
-    content: string
+    content: React.ReactNode,
     className?: string
 }
 
@@ -29,7 +30,7 @@ export default function ContactCard({
                     <CardDescription>{description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p>{content}</p>
+                    {content}
                 </CardContent>
             </Card>
         </div>
