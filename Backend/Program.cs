@@ -27,6 +27,18 @@ builder.Services.AddSingleton<IAppDbContextFactory, AppDbContextFactory>();
 // Register Repositories
 builder.Services.AddTransient<ISystemConfigurationRepository, SystemConfigurationRepository>();
 
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReact", policy =>
+    {
+        policy
+        .WithOrigins("http://localhost:5173")
+        .AllowAnyHeader()
+        .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -42,6 +54,7 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthorization();
 
 app.UseCors("AllowLocalhost");
+app.UseCors("AllowReact");
 app.MapControllers();
 
 app.Run();

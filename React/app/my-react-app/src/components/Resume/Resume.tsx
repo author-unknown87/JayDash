@@ -3,13 +3,24 @@ import styles from './Resume.module.scss'
 import ResumeAccordion from './ResumeAccordion/ResumeAccordion'
 import { PaperclipIcon } from 'lucide-react'
 import resume from '../../assets/files/Resume.pdf';
+import axios from "axios";
+import { useEffect } from "react";
 
 import {
     Alert,
     AlertDescription
  } from "../ui/alert"
 
+async function GetSystemConfig() {
+    const response = await axios.get("http://localhost:5000/api/SystemConfiguration?configName=SeekingPosition");
+    console.log("response: ", response);
+}
+
 export default function Resume() {
+    useEffect(() => {
+        GetSystemConfig();
+    }, [])
+
     return (
         <>
             <div className={styles.Main}>
