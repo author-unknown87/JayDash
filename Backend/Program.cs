@@ -27,6 +27,7 @@ builder.Services.AddTransient<ISystemConfigurationRepository, SystemConfiguratio
 builder.Services.AddTransient<IEducationRepository, EducationRepository>();
 builder.Services.AddTransient<IIndustryToolsRepository, IndustryToolsRepository>();
 builder.Services.AddTransient<ISkillsRepository, SkillsRepository>();
+builder.Services.AddTransient<IWorkplaceRepository, WorkplaceRepository>();
 
 // Register Services
 builder.Services.AddTransient<IResumeService, ResumeService>();

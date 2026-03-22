@@ -2,7 +2,6 @@ import Header from '../Header/Header'
 import styles from './Resume.module.scss'
 import ResumeAccordion from './ResumeAccordion/ResumeAccordion'
 import { FileDownIcon, BriefcaseBusinessIcon } from 'lucide-react'
-import resume from '../../assets/files/Resume.pdf';
 import { useEffect, useState } from "react";
 import FetchData from '../../hooks/FetchData';
 import { HttpAction } from '../../models/enums';
@@ -12,19 +11,10 @@ import {
     AlertDescription
  } from "../ui/alert"
 
- interface KeyValuePair {
-    key: string;
-    value: string;
-}
-
 export default function Resume() {
     /** Use States */
     const[isSeeking, setIsSeeking] = useState<boolean>(false);
-
-    /** Use Effects  */
-    useEffect(() => {
-        CheckSeekingPositionFlag();
-    }, [])
+    const[resume, setResume] = useState<any>(); // TODO: don't use Any, we have TS, use it
 
     /** Helper Methods */
     async function CheckSeekingPositionFlag() {
@@ -36,6 +26,25 @@ export default function Resume() {
         const isSeekingPosition = response?.data.value === "true";
         setIsSeeking(isSeekingPosition);
     }
+
+    async function GetResumeData() {
+        const resumeResponse = await FetchData({
+            endpoint: "Resume",
+            action: HttpAction.Get
+        })
+
+        console.log(resumeResponse);
+
+        if (resumeResponse !== undefined) {
+            setResume(resumeResponse.data);
+        }
+    }
+
+    /** Use Effects  */
+    useEffect(() => {
+        CheckSeekingPositionFlag();
+        GetResumeData();
+    }, [])
 
     /** Return Statement */
     return (
