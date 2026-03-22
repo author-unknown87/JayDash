@@ -22,6 +22,9 @@ builder.Services.AddCors(options =>
 
 // Register Repositories
 builder.Services.AddTransient<ISystemConfigurationRepository, SystemConfigurationRepository>();
+builder.Services.AddTransient<IEducationRepository, EducationRepository>();
+builder.Services.AddTransient<IIndustryToolsRepository, IndustryToolsRepository>();
+builder.Services.AddTransient<ISkillsRepository, SkillsRepository>();
 
 // Register DB context
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
