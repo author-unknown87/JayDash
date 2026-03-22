@@ -1,19 +1,16 @@
 ﻿using JayDash.Data;
+using JayDash.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JayDash.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class ResumeController(AppDbContext context) : ControllerBase
+public class ResumeController(AppDbContext _context, IResumeService _resumeService) : ControllerBase
 {
-
-    [HttpGet]
-    public async Task<IActionResult> GetWorkplaceByKey(int workplacePrimaryKey)
+    public async Task<IActionResult> GetResume(CancellationToken cancellationToken = default)
     {
-        var workplace = context.Workplaces
-            .FirstOrDefault(w => w.PrimaryKey == workplacePrimaryKey);
-
-        return Ok(workplace);
+        var resume = _resumeService.GetResume(cancellationToken);
+        return Ok(resume);
     }
 }

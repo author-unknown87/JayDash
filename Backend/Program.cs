@@ -2,6 +2,8 @@ using JayDash.Data;
 using JayDash.Middleware;
 using JayDash.Repositories;
 using JayDash.Repositories.Interfaces;
+using JayDash.Services;
+using JayDash.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +27,9 @@ builder.Services.AddTransient<ISystemConfigurationRepository, SystemConfiguratio
 builder.Services.AddTransient<IEducationRepository, EducationRepository>();
 builder.Services.AddTransient<IIndustryToolsRepository, IndustryToolsRepository>();
 builder.Services.AddTransient<ISkillsRepository, SkillsRepository>();
+
+// Register Services
+builder.Services.AddTransient<IResumeService, ResumeService>();
 
 // Register DB context
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
