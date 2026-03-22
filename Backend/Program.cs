@@ -1,8 +1,8 @@
 using JayDash.Data;
-using JayDash.Data.Interfaces;
 using JayDash.Middleware;
 using JayDash.Repositories;
 using JayDash.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +12,6 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-// builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost",
@@ -21,11 +20,19 @@ builder.Services.AddCors(options =>
         .AllowAnyOrigin());
 });
 
-// Register Services
-builder.Services.AddSingleton<IAppDbContextFactory, AppDbContextFactory>();
-
 // Register Repositories
 builder.Services.AddTransient<ISystemConfigurationRepository, SystemConfigurationRepository>();
+builder.Services.AddTransient<IEducationRepository, EducationRepository>();
+builder.Services.AddTransient<IIndustryToolsRepository, IndustryToolsRepository>();
+builder.Services.AddTransient<ISkillsRepository, SkillsRepository>();
+
+// Register DB context
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlServer(connectionString);
+});
 
 // CORS
 builder.Services.AddCors(options =>

@@ -5,19 +5,12 @@ namespace JayDash.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SystemConfigurationController: ControllerBase
+    public class SystemConfigurationController(ISystemConfigurationRepository systemConfigurationRepository) : ControllerBase
     {
-        private readonly ISystemConfigurationRepository _systemConfigurationRepository;
-
-        public SystemConfigurationController(ISystemConfigurationRepository systemConfigurationRepository)
-        {
-            _systemConfigurationRepository = systemConfigurationRepository;
-        }
-
         [HttpGet]
         public async Task<IActionResult> GetSystemConfigByName(string configName, CancellationToken cancellationToken = default)
         {
-            var config = await _systemConfigurationRepository.GetConfigurationByName(configName, cancellationToken);
+            var config = await systemConfigurationRepository.GetConfigurationByName(configName, cancellationToken);
             return Ok(config);
         }
     }
