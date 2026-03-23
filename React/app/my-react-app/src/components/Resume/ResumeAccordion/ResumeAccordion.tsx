@@ -1,31 +1,105 @@
+/* ---------- Imports */
 import { 
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger
- } from "../../ui/accordion"
+} from "../../ui/accordion"
 
- import {
+import {
     Table,
     TableBody,
     TableCell,
     TableHead,
     TableHeader,
     TableRow
- } from "../../ui/table"
+} from "../../ui/table"
 
- import { 
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
- } from "../../ui/card"
+import { 
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "../../ui/card"
 
- import styles from './ResumeAccordion.module.scss'
- import ResumeTableRow from "./TableRow/ResumeTableRow"
+import styles from './ResumeAccordion.module.scss'
+import ResumeTableRow from "./TableRow/ResumeTableRow"
 
-export default function ResumeAccordion() {
+/* ---------- Interface Definitions */
+
+interface ResumeAccordionProps {
+    resumeData: any
+}
+
+interface resumeSkill {
+    primaryKey: number,
+    skillName: string,
+    startDate: string
+}
+
+interface resumeEducation {
+    primaryKey: number,
+    institution: string,
+    description: string,
+    startDate: string,
+    endDate: string,
+    program: string,
+    gpa: string
+}
+
+interface resumeWorkplace {
+    primaryKey: number,
+    companyName: string,
+    position: string,
+    startDate: string,
+    endDate: string,
+    jobDescription: string,
+    currentPosition: boolean
+}
+
+interface resumeTool {
+    primaryKey: number,
+    toolName: string
+}
+
+interface resumeData {
+    skills: resumeSkill[],
+    education: resumeEducation[],
+    workplaces: resumeWorkplace[],
+    industryTools: resumeTool[]
+}
+
+/* ---------- Return Statement */
+
+export default function ResumeAccordion({
+    resumeData: resumeData
+}: ResumeAccordionProps) {
+
+    /* ---------- Helper Functions */
+    function BuildSkillsTable(): React.ReactElement[] {
+        if (!resumeData || !resumeData.skills) return (<></>)
+        const tableRows: React.ReactElement[] = [];
+        resumeData.skills.map((skill: resumeSkill) => {
+            const row = (<ResumeTableRow skillName={skill.skillName} startDate={skill.startDate} />);
+            tableRows.push(row);
+        })
+
+        return tableRows;
+    }
+
+    function BuildToolsList(): React.ReactElement[] {
+        console.log(resumeData);
+        if (!resumeData || !resumeData.industryTools) return (<></>)
+
+        const toolsList: React.ReactElement[] = [];
+        resumeData.industryTools.map((tool:resumeTool) => {
+            const toolListItem = (<li>{tool.toolName}</li>);
+            toolsList.push(toolListItem);
+        })
+
+        return toolsList;
+    }
 
     return (
         <>
@@ -41,12 +115,7 @@ export default function ResumeAccordion() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <ResumeTableRow skillName="C#" startDate="01-06-2020"/>
-                                <ResumeTableRow skillName=".NET" startDate="01-06-2020"/>
-                                <ResumeTableRow skillName="SQL" startDate="01-06-2020"/>
-                                <ResumeTableRow skillName="React" startDate="06-10-2024"/>
-                                <ResumeTableRow skillName="CI/CD Pipelines" startDate="03-01-2026"/>
-                                <ResumeTableRow skillName="Python" startDate="03-01-2026"/>
+                                {BuildSkillsTable()}
                             </TableBody>
                         </Table>
                         <Card>
@@ -56,16 +125,7 @@ export default function ResumeAccordion() {
                             </CardHeader>
                             <CardContent>
                                 <ul className={styles.ToolsList}>
-                                    <li>Visual Studio</li>
-                                    <li>VSCode</li>
-                                    <li>SSMS</li>
-                                    <li>Github Desktop / Git Extensions / Git Kraken</li>
-                                    <li>Github</li>
-                                    <li>Github Actions</li>
-                                    <li>LINQPad</li>
-                                    <li>Jira</li>
-                                    <li>Monday.com</li>
-                                    <li>Confluence</li>
+                                    {BuildToolsList()}
                                 </ul>
                             </CardContent>
                         </Card>

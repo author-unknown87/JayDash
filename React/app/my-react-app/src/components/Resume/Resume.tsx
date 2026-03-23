@@ -33,8 +33,6 @@ export default function Resume() {
             action: HttpAction.Get
         })
 
-        console.log(resumeResponse);
-
         if (resumeResponse !== undefined) {
             setResume(resumeResponse.data);
         }
@@ -69,7 +67,7 @@ export default function Resume() {
                     </Alert>
                 </div>
 
-                <ResumeAccordion />
+                <ResumeAccordion resumeData={resume}/>
             </div>
         </>
     )

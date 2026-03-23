@@ -1,7 +1,6 @@
 ﻿using JayDash.Data;
 using JayDash.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 
 namespace JayDash.Controllers;
 
