@@ -33,6 +33,7 @@ public class ResumeService(
     private async Task<List<WorkplaceModel>> GetWorkplaces(CancellationToken cancellationToken)
     {
         var workplaces = await _workplaceRepository.GetAllWorkplaces(cancellationToken);
+        workplaces = workplaces.OrderByDescending(w => w.StartDate).ToList();
         return workplaces;
     }
 

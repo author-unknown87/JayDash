@@ -1,31 +1,182 @@
+/* ---------- Imports */
 import { 
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger
- } from "../../ui/accordion"
+} from "../../ui/accordion"
 
- import {
+import {
     Table,
     TableBody,
     TableCell,
     TableHead,
     TableHeader,
     TableRow
- } from "../../ui/table"
+} from "../../ui/table"
 
- import { 
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
- } from "../../ui/card"
+import { 
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "../../ui/card"
 
- import styles from './ResumeAccordion.module.scss'
- import ResumeTableRow from "./TableRow/ResumeTableRow"
+import {
+    parseISO,
+    format
+} from 'date-fns'
 
-export default function ResumeAccordion() {
+import styles from './ResumeAccordion.module.scss'
+import ResumeTableRow from "./TableRow/ResumeTableRow"
+import React from "react"
+
+/* ---------- Interface Definitions */
+
+interface ResumeAccordionProps {
+    resumeData: resumeData
+}
+
+interface resumeSkill {
+    primaryKey: number,
+    skillName: string,
+    startDate: string
+}
+
+interface resumeEducation {
+    primaryKey: number,
+    institution: string,
+    description: string,
+    startDate: string,
+    endDate: string,
+    program: string,
+    gpa: string
+}
+
+interface resumeWorkplace {
+    primaryKey: number,
+    companyName: string,
+    position: string,
+    startDate: string,
+    endDate: string,
+    jobDescription: string,
+    currentPosition: boolean
+}
+
+interface resumeTool {
+    primaryKey: number,
+    toolName: string
+}
+
+interface resumeData {
+    skills: resumeSkill[],
+    education: resumeEducation[],
+    workplaces: resumeWorkplace[],
+    industryTools: resumeTool[]
+}
+
+/* ---------- Return Statement */
+
+export default function ResumeAccordion({
+    resumeData
+}: ResumeAccordionProps) {
+
+    /* ---------- Helper Functions */
+    function BuildSkillsTable(): React.ReactElement[] {
+        if (!resumeData || !resumeData.skills) return (<></>);
+        const tableRows: React.ReactElement[] = [];
+        resumeData.skills.map((skill: resumeSkill) => {
+            const row = (<ResumeTableRow skillName={skill.skillName} startDate={skill.startDate} />);
+            tableRows.push(row);
+        })
+
+        return tableRows;
+    }
+
+    function BuildToolsList(): React.ReactElement[] {
+        if (!resumeData || !resumeData.industryTools) return (<></>);
+
+        const toolsList: React.ReactElement[] = [];
+        resumeData.industryTools.map((tool:resumeTool) => {
+            const toolListItem = (<li>{tool.toolName}</li>);
+            toolsList.push(toolListItem);
+        })
+
+        return toolsList;
+    }
+
+    function BuildWorkplaces(): React.ReactElement[] {
+        if (!resumeData || !resumeData.workplaces) return (<></>);
+        const workplacesList: React.ReactElement[] = [];
+        resumeData.workplaces.map((workplace) => {
+            const newWorkplace = (
+                <Card className={styles.JobCard}>
+                    <CardHeader>
+                        <CardTitle>{workplace.companyName}</CardTitle>
+                        <CardDescription className={styles.HistoryDetails}>
+                            <div className={styles.JobTitle}>
+                                {workplace.position}
+                            </div>
+                            <div className={styles.Timeline}>
+                                {GetDisplayDate(workplace.startDate)} - {!workplace.endDate ? "Present" : GetDisplayDate(workplace.endDate)}
+                            </div>
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <p>{workplace.jobDescription}</p>
+                    </CardContent>
+                </Card>
+            )
+
+            workplacesList.push(newWorkplace);
+        })
+
+        return workplacesList;
+    }
+
+    function BuildEducation(): React.ReactElement[] {
+        if (!resumeData || !resumeData.education) return (<></>);
+        const educationList: React.ReactElement[] = [];
+        resumeData.education.map((edu) => {
+            const newEducation = (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>{edu.description}</CardTitle>
+                        <CardDescription>{edu.institution}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableRow>
+                                <TableCell>Dates Attended</TableCell>
+                                <TableCell>{GetDisplayDate(edu.startDate)} - {GetDisplayDate(edu.endDate)}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell>GPA</TableCell>
+                                <TableCell>{edu.gpa}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell>Program</TableCell>
+                                <TableCell>{edu.program}</TableCell>
+                            </TableRow>
+                        </Table>
+                    </CardContent>
+                </Card>
+            )
+
+            educationList.push(newEducation);
+        })
+
+        return educationList;
+    }
+
+    function GetDisplayDate(isoDate: string): string {
+        console.log(isoDate);
+        const parsedDate = parseISO(isoDate);
+        return format(parsedDate, "MMMM yyyy")
+    }
+
+    /* ---------- Return Statement */
 
     return (
         <>
@@ -41,12 +192,7 @@ export default function ResumeAccordion() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <ResumeTableRow skillName="C#" startDate="01-06-2020"/>
-                                <ResumeTableRow skillName=".NET" startDate="01-06-2020"/>
-                                <ResumeTableRow skillName="SQL" startDate="01-06-2020"/>
-                                <ResumeTableRow skillName="React" startDate="06-10-2024"/>
-                                <ResumeTableRow skillName="CI/CD Pipelines" startDate="03-01-2026"/>
-                                <ResumeTableRow skillName="Python" startDate="03-01-2026"/>
+                                {BuildSkillsTable()}
                             </TableBody>
                         </Table>
                         <Card>
@@ -56,16 +202,7 @@ export default function ResumeAccordion() {
                             </CardHeader>
                             <CardContent>
                                 <ul className={styles.ToolsList}>
-                                    <li>Visual Studio</li>
-                                    <li>VSCode</li>
-                                    <li>SSMS</li>
-                                    <li>Github Desktop / Git Extensions / Git Kraken</li>
-                                    <li>Github</li>
-                                    <li>Github Actions</li>
-                                    <li>LINQPad</li>
-                                    <li>Jira</li>
-                                    <li>Monday.com</li>
-                                    <li>Confluence</li>
+                                    {BuildToolsList()}
                                 </ul>
                             </CardContent>
                         </Card>
@@ -74,113 +211,13 @@ export default function ResumeAccordion() {
                 <AccordionItem value="history" className={styles.AccordionItem}>
                     <AccordionTrigger className={styles.AccordionTrigger}>Work History</AccordionTrigger>
                     <AccordionContent>
-                        <Card className={styles.JobCard}>
-                            <CardHeader>
-                                <CardTitle>Kardex Remstar</CardTitle>
-                                <CardDescription className={styles.HistoryDetails}>
-                                    <div className={styles.JobTitle}>
-                                        Software Developer
-                                    </div>
-                                    <div className={styles.Timeline}>
-                                        June 2024 - Present
-                                    </div>
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p>Full stack feature development supporting Kardex’s Warehouse Execution System (WES) product known as KFX.  Responsible for working assigned full-slice sprint tasks, encompassing everything from SQL updates through C# orchestration changes and frontend React updates, including changes to existing documentation or creation of new documentation where none existed.  Sprint work completed often includes spikes to investigate and design customer feature requests.  Frequent participation in regression testing cycles to assist QA across the finish line.  Occasional travel to customer sites to assist with onsite testing and KFX setup.</p>
-                            </CardContent>
-                        </Card>
-                        <Card className={styles.JobCard}>
-                            <CardHeader>
-                                <CardTitle>Tire Discounters</CardTitle>
-                                <CardDescription className={styles.HistoryDetails}>
-                                    <div className={styles.JobTitle}>
-                                        .NET Developer (Contractor)
-                                    </div>
-                                    <div className={styles.Timeline}>
-                                        January 2024 - June 2024
-                                    </div>
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p>Support of existing Web API (Rest) solution using C# and .NET Core 6.0 technology as part of a fast paced, Agile development team.  Responsible for developing new controllers/endpoints that interact with SQL Server databases via Entity Framework.  Interpreting existing manual business logic into supportable programmatic solutions.  Establishing solid unit testing around all new development where feasible to ensure consistent regression testing for future efforts.  Strong emphasis on best industry practices for C# development.  Integration with AWS in a C# web service to pull JSON from a DynamoDB table.</p>
-                            </CardContent>
-                        </Card>
-                        <Card className={styles.JobCard}>
-                            <CardHeader>
-                                <CardTitle>The Cincinnati Insurance Companies</CardTitle>
-                                <CardDescription className={styles.HistoryDetails}>
-                                    <div className={styles.JobTitle}>
-                                        Software Developer II
-                                    </div>
-                                    <div className={styles.Timeline}>
-                                        January 2020 - December 2023
-                                    </div>
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p>.NET web development utilizing C#, HTML, CSS, and Javascript to create and maintain ASP.NET MVC web applications.  Heavy use of SQL with a SQL Server database to perform basic CRUD operations.  Complex views and stored procedures written in SQL as needed.  Developed and maintained RESTful web service that fetched, serialized, and distributed XML to enterprise shared services for Big Data analysis purposes.  Heavy use of XSLT to transform XML files created from web service mentioned earlier.  Upgrading legacy applications on .NET Framework up to .NET Core 6.  Strong, consistent use of MVC code design in all applicable applications</p>
-                            </CardContent>
-                        </Card>
-                        <Card className={styles.JobCard}>
-                            <CardHeader>
-                                <CardTitle>Kroger Tech</CardTitle>
-                                <CardDescription className={styles.HistoryDetails}>
-                                    <div className={styles.JobTitle}>
-                                        Tech Support CTR Analyst 1
-                                    </div>
-                                    <div className={styles.Timeline}>
-                                        April 2018 - December 2020
-                                    </div>
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p>Resolving inbound support phone calls using a wide array of enterprise specific applications.  Escalating issues to appropriate teams through in-house ticketing system.  Inter-departmental collaboration to resolve larger issues as they arise</p>
-                            </CardContent>
-                        </Card>
-                        <Card className={styles.JobCard}>
-                            <CardHeader>
-                                <CardTitle>Luxottica</CardTitle>
-                                <CardDescription className={styles.HistoryDetails}>
-                                    <div className={styles.JobTitle}>
-                                        Workforce Management Data Analyst
-                                    </div>
-                                    <div className={styles.Timeline}>
-                                        February 2014 - April 2018
-                                    </div>
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p>Maintained call center employee schedules.  Managed time off requests versus staffing needs.  Analyzed historical call data for forecasting, staffing, and ensuring client performance guarantee goals.  Completed various data-oriented ad hoc reports for partner departments.</p>
-                            </CardContent>
-                        </Card>
+                        {BuildWorkplaces()}
                     </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="education" className={styles.AccordionItem}>
                     <AccordionTrigger className={styles.AccordionTrigger}>Education</AccordionTrigger>
                     <AccordionContent>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Associate of Applied Science</CardTitle>
-                                <CardDescription>Cincinnati State Technical College</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableRow>
-                                        <TableCell>Dates Attended</TableCell>
-                                        <TableCell>September 2016 - January 2020</TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell>GPA</TableCell>
-                                        <TableCell>3.5</TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell>Program</TableCell>
-                                        <TableCell>Business Systems Programming and Analytics</TableCell>
-                                    </TableRow>
-                                </Table>
-                            </CardContent>
-                        </Card>
+                        {BuildEducation()}
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>

@@ -8,9 +8,10 @@ namespace JayDash.Controllers;
 [ApiController]
 public class ResumeController(AppDbContext _context, IResumeService _resumeService) : ControllerBase
 {
+    [HttpGet]
     public async Task<IActionResult> GetResume(CancellationToken cancellationToken = default)
     {
-        var resume = _resumeService.GetResume(cancellationToken);
+        var resume = await _resumeService.GetResume(cancellationToken);
         return Ok(resume);
     }
 }
