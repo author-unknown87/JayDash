@@ -12,7 +12,13 @@ public class WorkplaceRepository(AppDbContext context) : IWorkplaceRepository
         var workplaces = await context.Workplaces.Select(w =>
             new WorkplaceModel
             {
-                PrimaryKey = w.PrimaryKey
+                PrimaryKey = w.PrimaryKey,
+                CompanyName = w.CompanyName,
+                Position = w.Position,
+                StartDate = w.StartDate,
+                EndDate = w.EndDate,
+                CurrentPosition = w.CurrentPosition,
+                JobDescription = w.JobDescription
             }).ToListAsync(cancellationtoken);
 
         return workplaces;
