@@ -6,7 +6,9 @@ namespace JayDash.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class ResumeController(AppDbContext _context, IResumeService _resumeService) : ControllerBase
+public class ResumeController(
+    AppDbContext _context, 
+    IResumeService _resumeService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetResume(CancellationToken cancellationToken = default)

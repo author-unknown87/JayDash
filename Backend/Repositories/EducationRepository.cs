@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JayDash.Repositories;
 
-public class EducationRepository(AppDbContext context) : IEducationRepository
+public class EducationRepository(AppDbContext _context) : IEducationRepository
 {
     public async Task<List<EducationModel>> GetAllEducation(CancellationToken cancellationToken)
     {
-        var results = await context.Education.Select(e => new EducationModel
+        var results = await _context.Education.Select(e => new EducationModel
         {
             PrimaryKey = e.PrimaryKey,
             Institution = e.Institution,
