@@ -1,4 +1,5 @@
 ﻿using JayDash.Repositories.Interfaces;
+using JayDash.Repositories.Specifications;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JayDash.Controllers;
@@ -10,7 +11,8 @@ public class SystemConfigurationController(ISystemConfigurationRepository system
     [HttpGet]
     public async Task<IActionResult> GetSystemConfigByName(string configName, CancellationToken cancellationToken = default)
     {
-        var config = await systemConfigurationRepository.GetConfigurationByName(configName, cancellationToken);
+        var nameSpecification = new GetSystemConfigByName(configName);
+        var config = await systemConfigurationRepository.GetConfigurations(nameSpecification, cancellationToken);
         return Ok(config);
     }
 }
