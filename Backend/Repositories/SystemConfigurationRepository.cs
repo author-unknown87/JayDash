@@ -7,7 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JayDash.Repositories;
 
-public class SystemConfigurationRepository(AppDbContext appDbContext) : ISystemConfigurationRepository
+public class SystemConfigurationRepository(
+    AppDbContext appDbContext,
+    ILogger<SystemConfigurationRepository> logger) : ISystemConfigurationRepository
 {
     public async Task<SystemConfigurationModel?> GetConfigurations(
         ISpecification<SystemConfiguration>? spec = null,
@@ -28,5 +30,20 @@ public class SystemConfigurationRepository(AppDbContext appDbContext) : ISystemC
             }).FirstOrDefaultAsync(cancellationToken);
 
         return config;
+    }
+
+    public async Task<(bool Success, string Message)> UpdateConfiguration(string configName, string newValue, CancellationToken cancellationToken)
+    {
+        var config = await appDbContext.SystemConfigurations.Where(sc => sc.Name == configName).FirstOrDefaultAsync(cancellationToken);
+
+        if (config is null)
+        {
+            logger.LogError("Failed to find matching system configuration during update call.  Target Config Name: {configName}, intended value: {value}", configName, newValue);
+            return (Success: false, Message: $"Did not find matching system configuration with name {configName}");
+        }
+
+        config.Value = newValue;
+        await appDbContext.SaveChangesAsync(cancellationToken);
+        return (Success: true, Message: "");
     }
 }
