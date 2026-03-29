@@ -7,7 +7,7 @@ namespace JayDash.Repositories.Interfaces
     public interface ISystemConfigurationRepository
     {
         /// <summary>
-        /// Searches for configuration setting in DB by matching name. Optional specification may further filter results.
+        /// Returns configurations matching passed-in specification, otherwise all configuration records.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="spec"></param>
