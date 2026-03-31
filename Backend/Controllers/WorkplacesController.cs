@@ -2,6 +2,7 @@ using JayDash.Data.Models;
 using JayDash.Data.Models.Responses;
 using JayDash.Repositories.Interfaces;
 using JayDash.Repositories.Specifications;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JayDash.Controllers;
@@ -32,6 +33,7 @@ public class WorkplacesController(IWorkplaceRepository repository) : ControllerB
         return Ok(baseResponse);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] WorkplaceModel model, CancellationToken cancellationToken = default)
     {
@@ -44,6 +46,7 @@ public class WorkplacesController(IWorkplaceRepository repository) : ControllerB
         return Ok(response);
     }
 
+    [Authorize]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete([FromQuery] int id, CancellationToken cancellationToken = default)
     {

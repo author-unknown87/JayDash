@@ -3,6 +3,7 @@ using JayDash.Data.Models.Responses;
 using JayDash.Repositories.Interfaces;
 using JayDash.Repositories.Specifications;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace JayDash.Controllers;
 
@@ -18,6 +19,8 @@ public class SystemConfigurationController(ISystemConfigurationRepository system
         return Ok(config);
     }
 
+    [Authorize]
+    [HttpPost]
     public async Task<IActionResult> UpdateSystemConfigValue([FromBody] UpdateSystemConfigValueRequest request, CancellationToken cancellationToken = default)
     {
         var result = await systemConfigurationRepository.UpdateConfiguration(request.ConfigName, request.Value, cancellationToken);

@@ -1,8 +1,6 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using JayDash.Data.Models;
 using JayDash.Repositories.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JayDash.Controllers;
@@ -18,6 +16,7 @@ public class EducationController(IEducationRepository repository) : ControllerBa
         return Ok(list);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] EducationModel model, CancellationToken cancellationToken = default)
     {
@@ -25,6 +24,7 @@ public class EducationController(IEducationRepository repository) : ControllerBa
         return CreatedAtAction(nameof(Get), null, model);
     }
 
+    [Authorize]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken = default)
     {
