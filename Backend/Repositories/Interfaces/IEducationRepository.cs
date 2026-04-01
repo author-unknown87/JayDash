@@ -13,4 +13,20 @@ public interface IEducationRepository
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<List<EducationModel>> GetAllEducation(CancellationToken cancellationToken = default, ISpecification<Education>? spec = null);
+
+    /// <summary>
+    /// Updates existing education record, or creates new one if none found
+    /// </summary>
+    /// <param name="educationModel"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task UpsertEducation(EducationModel educationModel, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Deletes targeted education record based on primary key
+    /// </summary>
+    /// <param name="primaryKey"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task DeleteEducation(int primaryKey, CancellationToken cancellationToken);
 }

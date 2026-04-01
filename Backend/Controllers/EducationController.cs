@@ -2,6 +2,7 @@ using JayDash.Data.Models;
 using JayDash.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using JayDash.Data.Models.Responses;
 
 namespace JayDash.Controllers;
 
@@ -13,22 +14,26 @@ public class EducationController(IEducationRepository repository) : ControllerBa
     public async Task<ActionResult<List<EducationModel>>> Get(CancellationToken cancellationToken = default)
     {
         var list = await repository.GetAllEducation(cancellationToken: cancellationToken);
-        return Ok(list);
+        return Ok(new APIBaseResponse {
+            Success = true,
+            Message = "",
+            Data = list
+        });
     }
 
     [Authorize]
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] EducationModel model, CancellationToken cancellationToken = default)
     {
-        // Stub: implement create logic using repository when available.
-        return CreatedAtAction(nameof(Get), null, model);
+        await repository.UpsertEducation(model, cancellationToken);
+        return Ok(new APIBaseResponse().OKNoData("Education upsert complete"));
     }
 
     [Authorize]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken = default)
     {
-        // Stub: implement delete logic using repository when available.
-        return NoContent();
+        await repository.DeleteEducation(id, cancellationToken);
+        return Ok(new APIBaseResponse().OKNoData("Education record deleted"));
     }
 }
