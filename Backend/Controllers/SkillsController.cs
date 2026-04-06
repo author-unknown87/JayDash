@@ -1,4 +1,5 @@
 using JayDash.Data.Models;
+using JayDash.Data.Models.Responses;
 using JayDash.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,15 +21,15 @@ public class SkillsController(ISkillsRepository repository) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] SkillModel model, CancellationToken cancellationToken = default)
     {
-        // Stub: implement create logic using repository when available.
-        return CreatedAtAction(nameof(Get), null, model);
+        await repository.UpsertSkills(model, cancellationToken: cancellationToken);
+        return Ok(new APIBaseResponse().OKNoData("Skill upserted successfully"));
     }
 
     [Authorize]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken = default)
     {
-        // Stub: implement delete logic using repository when available.
-        return NoContent();
+        await repository.DeleteSkill(id, cancellationToken: cancellationToken);
+        return Ok(new APIBaseResponse().OKNoData("Skill Deleted"));
     }
 }

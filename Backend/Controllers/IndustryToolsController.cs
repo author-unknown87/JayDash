@@ -1,4 +1,5 @@
 using JayDash.Data.Models;
+using JayDash.Data.Models.Responses;
 using JayDash.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,17 +19,17 @@ public class IndustryToolsController(IIndustryToolsRepository repository) : Cont
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Post([FromBody] IndustryToolModel model, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> UpsertTool([FromBody] IndustryToolModel model, CancellationToken cancellationToken = default)
     {
-        // Stub: implement create logic using repository when available.
-        return CreatedAtAction(nameof(Get), null, model);
+        await repository.UpsertTool(model, cancellationToken);
+        return Ok(new APIBaseResponse().OKNoData("Industry tool upsert complete"));
     }
 
     [Authorize]
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> DeleteTool(int id, CancellationToken cancellationToken = default)
     {
-        // Stub: implement delete logic using repository when available.
-        return NoContent();
+        await repository.DeleteTool(id, cancellationToken);
+        return Ok(new APIBaseResponse().OKNoData("Industry tool deleted"));
     }
 }

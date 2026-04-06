@@ -29,4 +29,35 @@ public class SkillsRepository(AppDbContext context) : ISkillsRepository
 
         return results;
     }
+
+    public async Task UpsertSkills(SkillModel skill, CancellationToken cancellationToken)
+    {
+        var result = await context.Skills.FirstOrDefaultAsync(s => s.SkillName == skill.SkillName, cancellationToken);
+        if (result is null)
+        {
+            context.Skills.Add(new Skill
+            {
+                SkillName = skill.SkillName,
+                StartDate = skill.StartDate
+            });
+
+            await context.SaveChangesAsync(cancellationToken);
+            return;
+        }
+
+        result.SkillName = skill.SkillName;
+        result.StartDate = skill.StartDate;
+
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteSkill(int primaryKey, CancellationToken cancellationToken)
+    {
+        var result = await context.Skills.FirstOrDefaultAsync(s => s.PrimaryKey == primaryKey, cancellationToken);
+
+        if (result is null) return;
+
+        context.Skills.Remove(result);
+        await context.SaveChangesAsync(cancellationToken);
+    }
 }

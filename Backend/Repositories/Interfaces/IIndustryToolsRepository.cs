@@ -13,4 +13,14 @@ public interface IIndustryToolsRepository
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<List<IndustryToolModel>> GetAllIndustryTools(CancellationToken cancellationToken = default, ISpecification<IndustryTool>? spec = null);
+
+    /// <summary>
+    /// Insert or update an industry tool record.
+    /// </summary>
+    Task UpsertTool(IndustryToolModel toolModel, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Delete an industry tool by primary key.
+    /// </summary>
+    Task DeleteTool(int primaryKey, CancellationToken cancellationToken);
 }
