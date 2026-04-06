@@ -5,6 +5,8 @@ using JayDash.Repositories.Interfaces;
 using JayDash.Services;
 using JayDash.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
 try
@@ -31,6 +33,24 @@ try
     builder.Services.AddTransient<IIndustryToolsRepository, IndustryToolsRepository>();
     builder.Services.AddTransient<ISkillsRepository, SkillsRepository>();
     builder.Services.AddTransient<IWorkplaceRepository, WorkplaceRepository>();
+
+    // Register Authentication
+    builder.Services
+        .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.Authority = "https://dev-uo5ziqw8n7a6b0i4.us.auth0.com/";
+            options.Audience = "https://jaydash";
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = true,
+                ValidateIssuer = true,
+                ValidateLifetime = true
+            };
+        });
+
+    builder.Services.AddAuthorization();
+
 
     // Register Services
     builder.Services.AddTransient<IResumeService, ResumeService>();
@@ -75,6 +95,7 @@ try
     //app.UseHttpsRedirection();
     app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+    app.UseAuthentication();
     app.UseAuthorization();
 
     app.UseCors("AllowLocalhost");

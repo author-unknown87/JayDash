@@ -171,7 +171,6 @@ export default function ResumeAccordion({
     }
 
     function GetDisplayDate(isoDate: string): string {
-        console.log(isoDate);
         const parsedDate = parseISO(isoDate);
         return format(parsedDate, "MMMM yyyy")
     }
