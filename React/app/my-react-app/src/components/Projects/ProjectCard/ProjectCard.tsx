@@ -10,6 +10,7 @@ interface ProjectCardProps {
     title: string,
     description: string,
     children: React.ReactNode
+    onClick?: () => void
 }
 
 import styles from './ProjectCard.module.scss'
@@ -17,17 +18,20 @@ import styles from './ProjectCard.module.scss'
 export default function ProjectCard({
     title,
     description,
-    children
+    children,
+    onClick
 }: ProjectCardProps) {
     return (
-        <Card className={styles.ProjectCard}>
-            <CardHeader>
-                <CardTitle>{title}</CardTitle>
-                <CardDescription>{description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-                {children}
-            </CardContent>
-        </Card>
+        <div onClick={onClick}>
+            <Card className={styles.ProjectCard}>
+                <CardHeader>
+                    <CardTitle>{title}</CardTitle>
+                    <CardDescription>{description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {children}
+                </CardContent>
+            </Card>
+        </div>
     )
 }
