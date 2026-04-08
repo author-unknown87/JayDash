@@ -1,11 +1,35 @@
+@import '../../../styles/variables';
+
+.MainWrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 50rem;
+}
+
 .Board {
-    border: 1px solid red;
-    width: 5rem;
-    height: 5rem;
     margin-top: 1rem;
     margin-left: 2rem;
 }
 
 .Row {
     border: 1px solid black;
+}
+
+.MainWrap h1 {
+    font-family: "Bangers", system-ui;
+    font-style: normal;
+    font-size: 3rem;
+    margin-top: 1rem;
+    font-weight: 400;
+}
+
+.MainWrap span:hover {
+    cursor: pointer;
+    color: $accent;
+}
+
+.MainWrap span:active {
+    color: #fff;
 }

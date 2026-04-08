@@ -12,14 +12,14 @@ export default function BoardRow({
     return (
         <>
             <div className={styles.Row}>
-                <BoardRowCell hasPuck={false} color={rowNumberIsEven ? 'black' : 'red'} />
-                <BoardRowCell hasPuck={false} color={rowNumberIsEven ? 'red' : 'black'} />
-                <BoardRowCell hasPuck={false} color={rowNumberIsEven ? 'black' : 'red'} />
-                <BoardRowCell hasPuck={false} color={rowNumberIsEven ? 'red' : 'black'} />
-                <BoardRowCell hasPuck={false} color={rowNumberIsEven ? 'black' : 'red'} />
-                <BoardRowCell hasPuck={false} color={rowNumberIsEven ? 'red' : 'black'} />
-                <BoardRowCell hasPuck={false} color={rowNumberIsEven ? 'black' : 'red'} />
-                <BoardRowCell hasPuck={false} color={rowNumberIsEven ? 'red' : 'black'} />
+                <BoardRowCell hasPuck={true} color={rowNumberIsEven ? 'dark' : 'light'} piece={'black'}/>
+                <BoardRowCell hasPuck={false} color={rowNumberIsEven ? 'light' : 'dark'} piece={'black'}/>
+                <BoardRowCell hasPuck={true} color={rowNumberIsEven ? 'dark' : 'light'} piece={'red'}/>
+                <BoardRowCell hasPuck={false} color={rowNumberIsEven ? 'light' : 'dark'} piece={'black'}/>
+                <BoardRowCell hasPuck={false} color={rowNumberIsEven ? 'dark' : 'light'} piece={'red'}/>
+                <BoardRowCell hasPuck={false} color={rowNumberIsEven ? 'light' : 'dark'} piece={'black'}/>
+                <BoardRowCell hasPuck={false} color={rowNumberIsEven ? 'dark' : 'light'} piece={'black'}/>
+                <BoardRowCell hasPuck={false} color={rowNumberIsEven ? 'light' : 'dark'} piece={'red'}/>
             </div>
         </>
     )

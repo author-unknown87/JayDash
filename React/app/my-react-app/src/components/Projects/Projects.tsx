@@ -60,9 +60,7 @@ export default function Projects() {
                     )}
                 </div>
             {showCheckers && (
-                <div className={styles.CheckersProject}>
-                    <Checkerboard quitGame={toggleCheckers}/>
-                </div>
+                <Checkerboard quitGame={toggleCheckers}/>
             )}
             </div>
         </>
