@@ -1,8 +1,8 @@
 import styles from './Checkerboard.module.scss'
 import BoardRow from './BoardRow/BoardRow'
 import GameMenu from './GameMenu/GameMenu'
-import { GameStateCell, PlayerMove, Coords, ActiveCellContext } from '../../../models/CheckersTypes'
-import React, { useState, useEffect } from 'react'
+import { GameStateCell, Coords, ActiveCellContext, Move } from '../../../models/CheckersTypes'
+import { useState } from 'react'
 
 // ----- Local Types ----- //
 
@@ -58,42 +58,82 @@ function createFreshGameState(): GameStateCell[][] {
 // ----- Local Constants ----- //
 
 const newGameState: GameStateCell[][] = createFreshGameState();
-const defaultPlayerMove:PlayerMove = {
-        start: {row: 0, cell: 0},
-        end: {row: 0, cell: 0}
-    }
 
 export default function Checkerboard ({
     quitGame
 }: CheckerboardProps) {
     // ----- Use State Definitions ----- //
     const [gameState, setGameState] = useState<GameStateCell[][]>(newGameState);
-    const [playerMove, setPlayerMove] = useState<PlayerMove>(defaultPlayerMove);
+
     const [activeCell, setActiveCell] = useState<Coords>({row: -1, cell: -1});
 
-    // ----- Use Effect Definitions ----- //
-    useEffect(() => {
-        validatePlayerMove();
-    }, [playerMove])
-
     // ----- Component Methods ----- //
-    function validatePlayerMove() {
 
+    //** Clear game state to reset pieces */
+    function restart() {
+        setGameState(newGameState);
     }
 
-    function handlePuckClick(coords: Coords) {
-        console.log("coords are ", coords.row, coords.cell);
-        setActiveCell(coords);
+    function updateGameState(newSpaceCoords:Coords, oldSpaceCoords:Coords, piece: string) {
+        setGameState((currentState) => {
+            const updatedState = currentState.map(row => 
+                row.map(cell => ({...cell}))
+            )
+            updatedState[newSpaceCoords.row][newSpaceCoords.cell].piece = piece;
+            updatedState[oldSpaceCoords.row][oldSpaceCoords.cell].piece = "";
+            return updatedState;
+        })
+    }
 
-        // first check if this is first or 2nd move click
+    function targetSpaceIsEmpty(move: Move):boolean {
+        const pieceAtCell = gameState[move.coords.row][move.coords.cell].piece;
+        return pieceAtCell === "";
+    }
 
-            // if first, assign coords and exit
+    function targetSpaceIsForwardDiagonal(move: Move):boolean {
+        const startRow = gameState[activeCell.row][activeCell.cell].row;
+        const startCell = gameState[activeCell.row][activeCell.cell].cell;
 
-            // if second, assign coords and validate
+        const spaceIsForwardDiagonal = move.coords.row === startRow - 1 &&
+                            (move.coords.cell === startCell - 1 ||
+                                move.coords.cell === startCell + 1
+                            );
+        
+        return spaceIsForwardDiagonal;
+    }
 
-                // if move is valid, update state
+    function validateMove(move: Move): boolean {
+        const spaceIsEmpty = targetSpaceIsEmpty(move);
+        // conditional: piece is not a King
+        const spaceIsForwardDiagonal = targetSpaceIsForwardDiagonal(move);
 
-                // if move is invalid, provide feedback and clear player move
+        return (spaceIsEmpty && spaceIsForwardDiagonal);
+    }
+
+    function handlePuckClick(move: Move) {
+        const isFirstClick = activeCell.cell === -1;
+        const pieceAtLocation = gameState[move.coords.row][move.coords.cell].piece;
+
+        if (isFirstClick) {
+            if (pieceAtLocation === "B") {
+                setActiveCell(move.coords);
+            }
+            return;
+        }
+
+        // handle 2nd click
+        // validate move
+        const moveIsValid = validateMove(move);
+        // TODO: Handle this gracefully, with feedback to the user
+        if (!moveIsValid) {
+            setActiveCell({row: -1, cell: -1})
+            return;
+        }
+
+        // We can safely assume player only plays Black pucks at this time
+        updateGameState(move.coords, activeCell, "B"); 
+        // clear coords
+        setActiveCell({row: -1, cell: -1})
     }
 
     // ----- Component Render ----- //
@@ -101,7 +141,7 @@ export default function Checkerboard ({
         <>
             <div className={styles.MainWrap}>
                 <h1>Checkers with Chester</h1>
-                <GameMenu onQuit={quitGame}/>
+                <GameMenu onQuit={quitGame} onRestart={restart}/>
                 <ActiveCellContext.Provider value={activeCell}>
                     <div className={styles.Board}>
                         {

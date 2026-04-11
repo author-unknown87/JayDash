@@ -11,6 +11,11 @@ export type Coords = {
     cell: number
 }
 
+export type Move = {
+    coords: Coords,
+    piece: string
+}
+
 export type PlayerMove = {
     start: Coords
     end: Coords

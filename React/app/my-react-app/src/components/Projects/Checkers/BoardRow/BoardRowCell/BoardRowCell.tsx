@@ -1,7 +1,7 @@
 import styles from './BoardRowCell.module.scss'
 import { useContext } from 'react'
 import { ActiveCellContext } from '../../../../../models/CheckersTypes'
-import { Coords } from '../../../../../models/CheckersTypes'
+import { Move } from '../../../../../models/CheckersTypes'
 
 // ----- Local Types ----- //
 interface BoardRowCellProps {
@@ -10,7 +10,7 @@ interface BoardRowCellProps {
     piece?: string,
     row: number,
     cell: number,
-    handleClick: (coords: Coords) => void
+    handleClick: (move: Move) => void
 }
 
 export default function BoardRowCell({
@@ -22,7 +22,7 @@ export default function BoardRowCell({
     handleClick
 }: BoardRowCellProps) {
     // ----- Component Variables ----- //
-    const isRed = piece === 'red'
+    const isRed = piece === 'R'
     const activeCell = useContext(ActiveCellContext);
 
     // ----- Component Methods ----- //
@@ -38,8 +38,14 @@ export default function BoardRowCell({
 
     function handleCellClick() {
         if (color === 'light' || isRed) return;
-
-        handleClick({row, cell})
+        const newMove:Move = {
+            coords: {
+                row: row,
+                cell: cell
+            },
+            piece: piece ? piece : ""
+        }
+        handleClick(newMove)
     }
 
     // ----- Component Return ----- //

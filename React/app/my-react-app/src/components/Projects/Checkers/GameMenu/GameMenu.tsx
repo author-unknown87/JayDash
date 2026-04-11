@@ -1,15 +1,17 @@
 import styles from './GameMenu.module.scss'
 
 interface GameMenuProps {
-    onQuit: () => void
+    onQuit: () => void,
+    onRestart: () => void
 }
 
 export default function GameMenu({
-    onQuit
+    onQuit,
+    onRestart
 }: GameMenuProps) {
     return (
         <div className={styles.MenuBar}>
-            <span onClick={onQuit}>Quit</span> | <span>Save Game</span> | <span>Load Game</span> | <span>Restart</span> 
+            <span onClick={onQuit}>Quit</span> | <span>Save Game</span> | <span>Load Game</span> | <span onClick={onRestart} >Restart</span> 
         </div>
     )
 }
