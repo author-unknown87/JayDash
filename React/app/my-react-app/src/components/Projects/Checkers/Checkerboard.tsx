@@ -1,12 +1,16 @@
 import styles from './Checkerboard.module.scss'
 import BoardRow from './BoardRow/BoardRow'
 import GameMenu from './GameMenu/GameMenu'
-import { GameStateCell } from 'src/models/GameStateCell'
-import { useState } from 'react'
+import { GameStateCell, PlayerMove, Coords, ActiveCellContext } from '../../../models/CheckersTypes'
+import React, { useState, useEffect } from 'react'
+
+// ----- Local Types ----- //
 
 interface CheckerboardProps {
     quitGame: () => void
 }
+
+// ----- Helper Methods ----- //
 
 function determinePiece(row: number, cell: number): string {
     const evenSpace = cell % 2 == 0;
@@ -51,28 +55,68 @@ function createFreshGameState(): GameStateCell[][] {
     return board;
 }
 
+// ----- Local Constants ----- //
+
 const newGameState: GameStateCell[][] = createFreshGameState();
+const defaultPlayerMove:PlayerMove = {
+        start: {row: 0, cell: 0},
+        end: {row: 0, cell: 0}
+    }
 
 export default function Checkerboard ({
     quitGame
 }: CheckerboardProps) {
-    const [gameState, setGameState] = useState<GameStateCell[][]>(newGameState); // DEFINE THIS, DO NOT USE <ANY>
+    // ----- Use State Definitions ----- //
+    const [gameState, setGameState] = useState<GameStateCell[][]>(newGameState);
+    const [playerMove, setPlayerMove] = useState<PlayerMove>(defaultPlayerMove);
+    const [activeCell, setActiveCell] = useState<Coords>({row: -1, cell: -1});
 
+    // ----- Use Effect Definitions ----- //
+    useEffect(() => {
+        validatePlayerMove();
+    }, [playerMove])
+
+    // ----- Component Methods ----- //
+    function validatePlayerMove() {
+
+    }
+
+    function handlePuckClick(coords: Coords) {
+        console.log("coords are ", coords.row, coords.cell);
+        setActiveCell(coords);
+
+        // first check if this is first or 2nd move click
+
+            // if first, assign coords and exit
+
+            // if second, assign coords and validate
+
+                // if move is valid, update state
+
+                // if move is invalid, provide feedback and clear player move
+    }
+
+    // ----- Component Render ----- //
     return (
         <>
             <div className={styles.MainWrap}>
                 <h1>Checkers with Chester</h1>
                 <GameMenu onQuit={quitGame}/>
-                <div className={styles.Board}>
-                {
-                    gameState.map((row, idx) => {
-                        const rowNum = idx + 1;
-                        return (
-                            <BoardRow rowNumber={rowNum} cells={row}/>
-                        )
-                    })
-                }
-                </div>
+                <ActiveCellContext.Provider value={activeCell}>
+                    <div className={styles.Board}>
+                        {
+                            gameState.map((row, idx) => {
+                                return (
+                                    <BoardRow 
+                                        rowNumber={idx} 
+                                        cells={row}
+                                        handleClick={handlePuckClick}
+                                    />
+                                )
+                            })
+                        }
+                        </div>
+                </ActiveCellContext.Provider>
             </div>
         </>
     )

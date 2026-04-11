@@ -1,23 +1,24 @@
 import styles from './BoardRow.module.scss'
 import BoardRowCell from './BoardRowCell/BoardRowCell'
-import { GameStateCell } from 'src/models/GameStateCell'
+import { GameStateCell, Coords } from 'src/models/CheckersTypes'
 
 interface BoardRowProps {
     rowNumber: number,
-    cells: GameStateCell[]
+    cells: GameStateCell[],
+    handleClick: (coords: Coords) => void
 }
 
 export default function BoardRow({
     rowNumber,
-    cells
+    cells,
+    handleClick
 }: BoardRowProps) {
 
     function determineCellColor(rowNumber: number, idx: number): string {
         if (rowNumber % 2 == 0) {
-            return (idx % 2 == 0 ? 'light' : 'dark');
+            return (idx % 2 == 0 ? 'dark' : 'light');
         }
-
-        return (idx % 2 == 0 ? 'dark' : 'light');
+        return (idx % 2 == 0 ? 'light' : 'dark');
     }
 
     function determinePuck(piece: string): string {
@@ -40,10 +41,13 @@ export default function BoardRow({
 
                     return (
                         <BoardRowCell 
-                            hasPuck={puck !== ""}
-                            color={coloring}
-                            piece={puck}
-                        />
+                                hasPuck={puck !== ""}
+                                color={coloring}
+                                piece={puck}
+                                row={rowNumber}
+                                cell={idx}
+                                handleClick={handleClick}
+                            />
                     )
                 })}
             </div>
