@@ -12,7 +12,7 @@ interface CheckerboardProps {
 
 // ----- Helper Methods ----- //
 
-function determinePiece(row: number, cell: number): string {
+function determinePieceForDefaultState(row: number, cell: number): string {
     const evenSpace = cell % 2 == 0;
 
     switch(row) {
@@ -44,7 +44,7 @@ function createFreshGameState(): GameStateCell[][] {
             const cell: GameStateCell = {
                 row: rowIndex,
                 cell: cellIndex,
-                piece: determinePiece(rowIndex, cellIndex)
+                piece: determinePieceForDefaultState(rowIndex, cellIndex)
             }
 
             row.push(cell);
@@ -55,23 +55,36 @@ function createFreshGameState(): GameStateCell[][] {
     return board;
 }
 
+// TODO: DO NOT KEEP THIS IN PRODUCTION
+function createTestGameState(): GameStateCell[][] {
+    const board = createFreshGameState();
+
+    // make adjustments
+    board[2][4].piece = "";
+    board[4][4].piece = "R";
+
+    return board;
+}
+
 // ----- Local Constants ----- //
 
-const newGameState: GameStateCell[][] = createFreshGameState();
+//const newGameState: GameStateCell[][] = createFreshGameState();
+const newGameState: GameStateCell[][] = createTestGameState();
 
 export default function Checkerboard ({
     quitGame
 }: CheckerboardProps) {
     // ----- Use State Definitions ----- //
     const [gameState, setGameState] = useState<GameStateCell[][]>(newGameState);
-
     const [activeCell, setActiveCell] = useState<Coords>({row: -1, cell: -1});
+    const [jumpedPieces, setJumpedPieces] = useState<Coords[]>([]);
 
     // ----- Component Methods ----- //
 
     //** Clear game state to reset pieces */
     function restart() {
         setGameState(newGameState);
+        setActiveCell({row: -1, cell: -1})
     }
 
     function updateGameState(newSpaceCoords:Coords, oldSpaceCoords:Coords, piece: string) {
@@ -90,13 +103,32 @@ export default function Checkerboard ({
         return pieceAtCell === "";
     }
 
+    function determineIfMoveIsJump(move: Move):boolean {
+        const startCell = activeCell.cell;
+        const startRow = activeCell.row;
+
+        // are they moving two spaces?
+        if (move.coords.row - startRow !== -2) return false;
+        if (Math.abs(move.coords.cell - startCell) !== 2) return false;
+
+        // is there a red piece in the way?
+        const isJumpRight = activeCell.cell - move.coords.cell < 0;
+        const jumpedRow = move.coords.row + 1;
+        const jumpedCell = (isJumpRight) ? activeCell.cell + 1 : activeCell.cell - 1;
+        const jumpedPiece = gameState[jumpedRow][jumpedCell].piece;
+        if (jumpedPiece !== "R") return false;
+
+        return true;
+    }
+
     function targetSpaceIsForwardDiagonal(move: Move):boolean {
         const startRow = gameState[activeCell.row][activeCell.cell].row;
         const startCell = gameState[activeCell.row][activeCell.cell].cell;
+        const isJump = determineIfMoveIsJump(move);
 
-        const spaceIsForwardDiagonal = move.coords.row === startRow - 1 &&
-                            (move.coords.cell === startCell - 1 ||
-                                move.coords.cell === startCell + 1
+        const spaceIsForwardDiagonal = move.coords.row === startRow - (isJump ? 2 : 1) &&
+                            (move.coords.cell === startCell - (isJump ? 2 : 1) ||
+                                move.coords.cell === startCell + (isJump ? 2 : 1)
                             );
         
         return spaceIsForwardDiagonal;
