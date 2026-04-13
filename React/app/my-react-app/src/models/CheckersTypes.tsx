@@ -21,7 +21,15 @@ export type PlayerMove = {
     end: Coords
 }
 
-export const ActiveCellContext = React.createContext<Coords>({
-    row: -1,
-    cell: -1
+export type ActiveCell = {
+    coords: Coords,
+    piece: string
+}
+
+export const ActiveCellContext = React.createContext<ActiveCell>({
+    coords: {
+        row: -1,
+        cell: -1
+    },
+    piece: ""
 })

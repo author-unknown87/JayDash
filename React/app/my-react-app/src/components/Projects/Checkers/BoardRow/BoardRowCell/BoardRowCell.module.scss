@@ -1,9 +1,12 @@
 .Cell {
     width: 5rem;
     height: 5rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: grid;
+    place-items: center;
+}
+
+.Cell > * {
+    grid-area: 1/1;
 }
 
 .Dark {
@@ -44,3 +47,8 @@
     background: radial-gradient(circle at 20% 20%, #b61c1c, #830c0c);
 }
 
+.KingMark {
+    color: rgb(255, 255, 255);
+    height: auto;
+    width: 2.25rem;
+}

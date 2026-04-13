@@ -2,6 +2,7 @@ import styles from './BoardRowCell.module.scss'
 import { useContext } from 'react'
 import { ActiveCellContext } from '../../../../../models/CheckersTypes'
 import { Move } from '../../../../../models/CheckersTypes'
+import { Crown } from 'lucide-react'
 
 // ----- Local Types ----- //
 interface BoardRowCellProps {
@@ -22,13 +23,14 @@ export default function BoardRowCell({
     handleClick
 }: BoardRowCellProps) {
     // ----- Component Variables ----- //
-    const isRed = piece === 'R'
+    const isRed = piece?.includes("R");
+    const isKing = piece?.includes("K");
     const activeCell = useContext(ActiveCellContext);
 
     // ----- Component Methods ----- //
     function determineColoring(): string {
         // check if coords for active cell match current cell
-        if (activeCell.row === row && activeCell.cell === cell) {
+        if (activeCell.coords.row === row && activeCell.coords.cell === cell) {
             return styles.Highlighted;
         }
 
@@ -55,6 +57,7 @@ export default function BoardRowCell({
                 {hasPuck && (
                     <>
                         <div className={`${styles.Puck} ${piece && isRed ? styles.RedPiece : styles.BlackPiece}`} />
+                        {isKing && <Crown className={styles.KingMark}/>}
                     </>
                 )}
             </div>
