@@ -54,6 +54,7 @@ try
 
     // Register Services
     builder.Services.AddTransient<IResumeService, ResumeService>();
+    builder.Services.AddTransient<ICheckersService, CheckersService>();
 
     // Register DB context
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

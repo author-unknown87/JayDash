@@ -11,7 +11,7 @@ export default function GameMenu({
 }: GameMenuProps) {
     return (
         <div className={styles.MenuBar}>
-            <span onClick={onQuit}>Quit</span> | <span>Save Game</span> | <span>Load Game</span> | <span onClick={onRestart} >Restart</span> 
+            <span onClick={onQuit}>Quit</span> | <span onClick={onRestart} >Restart</span> 
         </div>
     )
 }
