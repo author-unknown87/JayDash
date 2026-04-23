@@ -1,5 +1,10 @@
 import React from 'react'
 
+export type GameState = {
+    whoMovedLast: string,
+    rows: GameStateCell[][]
+}
+
 export type GameStateCell = {
     row: number,
     cell: number,

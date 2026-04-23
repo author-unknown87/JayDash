@@ -10,6 +10,7 @@ interface FetchDataProps {
     endpoint: string
     action: string,
     parameters?: KeyValuePair[];
+    postData?: any;
 }
 
 /** Local constants */
@@ -35,7 +36,8 @@ function buildURL(endpoint: string, parameters?: KeyValuePair[]): string {
 export default async function FetchData({
     endpoint,
     action,
-    parameters
+    parameters,
+    postData
 }: FetchDataProps) {
     try {
         const address = buildURL(endpoint, parameters);
@@ -45,7 +47,11 @@ export default async function FetchData({
                 response = await axios.get(address)
                 break;
             case HttpAction.Post:
-                // do a post here
+                response = await axios.post(address, postData, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
                 break;
             case HttpAction.Delete:
                 // do a delete here

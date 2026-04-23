@@ -7,9 +7,15 @@ namespace JayDash.Controllers;
 [Route("api/[controller]")]
 public class CheckersController(ICheckersService _checkersService) : ControllerBase
 {
-    public async Task<IActionResult> SubmitPlayerMove([FromBody] string boardState, CancellationToken cancellationToken = default)
+    [HttpPost("SubmitPlayerMove")]
+    public async Task<IActionResult> SubmitPlayerMove([FromBody] SubmitMoveRequest request, CancellationToken cancellationToken = default)
     {
-        var response = _checkersService.SendMoveToAI(boardState, cancellationToken);
+        var response = _checkersService.SendMoveToAI(request.BoardState, cancellationToken);
         return Ok();
     }
+}
+
+public class SubmitMoveRequest
+{
+    public string BoardState { get; set; }
 }

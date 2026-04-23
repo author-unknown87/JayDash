@@ -2,6 +2,7 @@
 {
     public class CheckersRow
     {
-        public ICollection<CheckersCell> Cells { get; set; }
+        public int RowNumber { get; set; }
+        public ICollection<CheckersCell> Cells { get; set; } = new List<CheckersCell>();
     }
 }

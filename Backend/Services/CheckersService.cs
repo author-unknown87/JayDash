@@ -24,6 +24,21 @@ public class CheckersService : ICheckersService
 
     internal async Task<List<Move>> GetValidMoves(GameBoard board, CancellationToken cancellationToken)
     {
-        return new List<Move>();
+        var validMoves = new List<Move>();
+
+        foreach (var row in board.Rows)
+        {
+            foreach (var cell in row.Cells)
+            {
+                if (!cell.isPlayable || !cell.HasPuck) continue;
+
+                // validate forward direction
+                
+
+                // if king, validate backwards directions too
+            }
+        }
+
+        return validMoves;
     }
 }

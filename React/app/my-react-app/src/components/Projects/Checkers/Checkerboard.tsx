@@ -1,8 +1,9 @@
 import styles from './Checkerboard.module.scss'
 import BoardRow from './BoardRow/BoardRow'
 import GameMenu from './GameMenu/GameMenu'
-import { GameStateCell, Coords, ActiveCellContext, Move, ActiveCell } from '../../../models/CheckersTypes'
-import { useState } from 'react'
+import { GameState, GameStateCell, Coords, ActiveCellContext, Move, ActiveCell } from '../../../models/CheckersTypes'
+import { useState, useEffect } from 'react'
+import FetchData from '../../../hooks/FetchData'
 
 // ----- Local Types ----- //
 
@@ -38,8 +39,11 @@ function determinePieceForDefaultState(row: number, cell: number): string {
     }
 }
 
-function createFreshGameState(): GameStateCell[][] {
-    const board: GameStateCell[][] = []
+function createFreshGameState(): GameState {
+    const gameBoard: GameState = {
+        whoMovedLast: "",
+        rows: []
+    }
 
     for (let rowIndex = 0; rowIndex <= 7; rowIndex++) {
         // rows
@@ -54,28 +58,28 @@ function createFreshGameState(): GameStateCell[][] {
 
             row.push(cell);
         }
-        board.push(row);
+        gameBoard.rows.push(row);
     }
 
-    return board;
+    return gameBoard;
 }
 
 // TODO: DO NOT KEEP THIS IN PRODUCTION
-function createTestGameState(): GameStateCell[][] {
+function createTestGameState(): GameState {
     const board = createFreshGameState();
 
     // make adjustments
     for (let i = 0; i <= 7; i++) {
-        board[0][i].piece = ""
+        board.rows[0][i].piece = ""
     }
 
-    board[1][5].piece = "B";
-    board[2][6].piece = "";
-    board[3][5].piece = "R";
-    board[2][2].piece = "";
-    board[3][3].piece = "R";
-    board[5][3].piece = "";
-    board[4][4].piece = "B";
+    board.rows[1][5].piece = "B";
+    board.rows[2][6].piece = "";
+    board.rows[3][5].piece = "R";
+    board.rows[2][2].piece = "";
+    board.rows[3][3].piece = "R";
+    board.rows[5][3].piece = "";
+    board.rows[4][4].piece = "B";
 
     return board;
 }
@@ -83,7 +87,7 @@ function createTestGameState(): GameStateCell[][] {
 // ----- Local Constants ----- //
 
 //const newGameState: GameStateCell[][] = createFreshGameState();
-const newGameState: GameStateCell[][] = createTestGameState();
+const newGameState: GameState = createTestGameState();
 const defaultActiveCell: ActiveCell = {
     coords: {row: -1, cell: -1},
     piece: ""
@@ -93,8 +97,15 @@ export default function Checkerboard ({
     quitGame
 }: CheckerboardProps) {
     // ----- Use State Definitions ----- //
-    const [gameState, setGameState] = useState<GameStateCell[][]>(newGameState);
+    const [gameState, setGameState] = useState<GameState>(newGameState);
     const [activeCell, setActiveCell] = useState<ActiveCell>(defaultActiveCell);
+
+    // ----- Use Effect Definitions ----- //
+    useEffect(() => {
+        if (gameState.whoMovedLast === "B") {
+            postMoveToBackend();
+        }
+    }, [gameState])
 
     // ----- Component Methods ----- //
 
@@ -109,15 +120,18 @@ export default function Checkerboard ({
         piece: string, 
         jumpedPiece?: Coords) {
         setGameState((currentState) => {
-            const updatedState = currentState.map(row => 
-                row.map(cell => ({...cell}))
-            )
-            updatedState[newSpaceCoords.row][newSpaceCoords.cell].piece = piece;
-            updatedState[oldSpaceCoords.row][oldSpaceCoords.cell].piece = "";
+            const updatedState = {
+                ...currentState,
+                rows: currentState.rows.map((row) => row.map(cell => ({...cell})))
+            }
+
+            updatedState.rows[newSpaceCoords.row][newSpaceCoords.cell].piece = piece;
+            updatedState.rows[oldSpaceCoords.row][oldSpaceCoords.cell].piece = "";
+            updatedState.whoMovedLast = "B";
 
             // remove jumped piece, if one was jumped
             if (jumpedPiece) {
-                updatedState[jumpedPiece.row][jumpedPiece.cell].piece = "";
+                updatedState.rows[jumpedPiece.row][jumpedPiece.cell].piece = "";
             }
 
             return updatedState;
@@ -125,7 +139,7 @@ export default function Checkerboard ({
     }
 
     function targetSpaceIsEmpty(move: Move):boolean {
-        const pieceAtCell = gameState[move.coords.row][move.coords.cell].piece;
+        const pieceAtCell = gameState.rows[move.coords.row][move.coords.cell].piece;
         return pieceAtCell === "";
     }
 
@@ -142,7 +156,7 @@ export default function Checkerboard ({
         const isJumpRight = activeCell.coords.cell - move.coords.cell < 0;
         const jumpedRow = jumpIsUp ? move.coords.row + 1 : move.coords.row - 1;
         const jumpedCell = (isJumpRight) ? activeCell.coords.cell + 1 : activeCell.coords.cell - 1;
-        const jumpedPiece = gameState[jumpedRow][jumpedCell].piece;
+        const jumpedPiece = gameState.rows[jumpedRow][jumpedCell].piece;
 
         if (jumpedPiece !== "R" && jumpedPiece !== "RK") return { isJump: false };
 
@@ -161,15 +175,15 @@ export default function Checkerboard ({
         const isJumpRight = activeCell.coords.cell - move.coords.cell < 0;
         const jumpedRow = move.coords.row + 1;
         const jumpedCell = (isJumpRight) ? activeCell.coords.cell + 1 : activeCell.coords.cell - 1;
-        const jumpedPiece = gameState[jumpedRow][jumpedCell].piece;
+        const jumpedPiece = gameState.rows[jumpedRow][jumpedCell].piece;
         if (jumpedPiece !== "R") return { isJump: false };
 
         return { isJump: true, jumpedPiece: {row: jumpedRow, cell: jumpedCell} };
     }
 
     function validateDirection(move: Move, isJump: boolean):boolean {
-        const startRow = gameState[activeCell.coords.row][activeCell.coords.cell].row;
-        const startCell = gameState[activeCell.coords.row][activeCell.coords.cell].cell;
+        const startRow = gameState.rows[activeCell.coords.row][activeCell.coords.cell].row;
+        const startCell = gameState.rows[activeCell.coords.row][activeCell.coords.cell].cell;
         let isValid = false;
 
         isValid = move.coords.row === startRow - (isJump ? 2 : 1) &&
@@ -195,10 +209,21 @@ export default function Checkerboard ({
         return (spaceIsEmpty && directionIsValid);
     }
 
+    function postMoveToBackend() {
+        const serializedBoard = JSON.stringify(gameState);
+        const postDataResponse = FetchData({
+            endpoint: "Checkers/SubmitPlayerMove",
+            action: "POST",
+            postData: { BoardState: serializedBoard }
+        }); 
+
+        console.log(postDataResponse);
+    }
+
     function handlePuckClick(move: Move) {
         const isFirstClick = activeCell.coords.cell === -1;
         const isKing = activeCell.piece.includes("K");
-        const pieceAtLocation = gameState[move.coords.row][move.coords.cell].piece;
+        const pieceAtLocation = gameState.rows[move.coords.row][move.coords.cell].piece;
 
         if (isFirstClick) {
             if (pieceAtLocation === "B" || pieceAtLocation === "BK") {
@@ -243,7 +268,7 @@ export default function Checkerboard ({
                     <ActiveCellContext.Provider value={activeCell}>
                         <div className={styles.Board}>
                             {
-                                gameState.map((row, idx) => {
+                                gameState.rows.map((row, idx) => {
                                     return (
                                         <BoardRow 
                                             rowNumber={idx} 
