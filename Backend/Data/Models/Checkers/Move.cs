@@ -2,9 +2,8 @@
 
 public class Move
 {
-    public CheckersPuck StartPuck { get; set; }
-
-    public CheckersPuck EndPuck { get; set; }
-
-    public bool IsValid { get; set; }
+    public PuckPosition StartPosition { get; set; }
+    public PuckPosition EndPosition { get; set; }
 }
+
+public readonly record struct PuckPosition(int Row, int Col);
