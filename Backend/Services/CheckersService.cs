@@ -1,12 +1,13 @@
 ﻿using JayDash.Data.Models.Checkers;
 using JayDash.Data.Models.Checkers.Enums;
 using JayDash.Services.Interfaces;
-using Microsoft.Extensions.Options;
 using OpenAI.Responses;
+using System.Text;
+using System.Text.Json;
 
 namespace JayDash.Services;
 
-public class CheckersService(IConfiguration _config) : ICheckersService
+public class CheckersService(IConfiguration _config, ILogger<CheckersService> _logger) : ICheckersService
 {
     public async Task<GameBoard> SendMoveToAI(string boardState, CancellationToken cancellationToken)
     {
@@ -14,12 +15,44 @@ public class CheckersService(IConfiguration _config) : ICheckersService
 
         var validMoves = await this.GetValidMoves(gameBoard, cancellationToken);
 
-        var AIResponse = await this.PostGameToAI(gameBoard, validMoves, cancellationToken);
+        var chosenMove = await this.PostGameToAI(gameBoard, validMoves, cancellationToken);
+
+        // TODO: indicate an error to the user if something went wrong here
+        if (chosenMove is null) return gameBoard;
+
+        gameBoard = UpdateGameBoard(gameBoard, chosenMove);
 
         return gameBoard;
     }
 
     #region Internal Helper Methods
+
+    internal GameBoard UpdateGameBoard(GameBoard board, Move chosenMove)
+    {
+        var firstPosition = chosenMove.Positions.First();
+        var lastPosition = chosenMove.Positions.Last();
+
+        var startingRow = board.Rows.First(r => r.RowNumber == firstPosition.Row);
+        var startingCell = startingRow.Cells.First(c => c.Col == firstPosition.Col);
+        var movedPuck = startingCell.Puck;
+        startingCell.Puck = null;
+
+        var endingRow = board.Rows.First(r => r.RowNumber == lastPosition.Row);
+        var endingCell = endingRow.Cells.First(c => c.Col == lastPosition.Col);
+        endingCell.Puck = movedPuck;
+
+        // King the piece, if it moved to the back row
+        if (endingCell.Row == 7) endingCell.Puck.IsKing = true;
+
+        foreach(var removedPiece in chosenMove.JumpedPieces)
+        {
+            var targetRow = board.Rows.First(r => r.RowNumber == removedPiece.Row);
+            var targetCell = targetRow.Cells.First(c => c.Col == removedPiece.Col);
+            targetCell.Puck = null;
+        }
+
+        return board;
+    }
 
     /// <summary>
     /// Validates all possible basic, non-jump moves for Red pieces
@@ -149,16 +182,18 @@ public class CheckersService(IConfiguration _config) : ICheckersService
             foreach (var moveToCheck in movesToCheck.Where(m => !m.finishedValidation).ToList())
             {
                 var startPoint = new Coords(
-                    Row: moveToCheck.move.Positions.Last().Row,
-                    Col: moveToCheck.move.Positions.Last().Col);
+                    moveToCheck.move.Positions.Last().Row,
+                    moveToCheck.move.Positions.Last().Col);
 
                 // check right
-                var rightPoint = new Coords(Row: startPoint.Row + rowDelta, Col: startPoint.Col + 2);
-                var rightIsValid = this.checkJumpCoordinates(startPoint, rightPoint, board);
+                var rightPoint = new Coords(row: startPoint.Row + rowDelta, col: startPoint.Col + 2);
+                var rightValidationResponse = this.checkJumpCoordinates(startPoint, rightPoint, board);
+                var rightIsValid = rightValidationResponse.isValid;
 
                 // check left
-                var leftPoint = new Coords(Row: startPoint.Row + rowDelta, Col: startPoint.Col - 2);
-                var leftIsValid = this.checkJumpCoordinates(startPoint, leftPoint, board);
+                var leftPoint = new Coords(row: startPoint.Row + rowDelta, col: startPoint.Col - 2);
+                var leftValidationResponse = this.checkJumpCoordinates(startPoint, leftPoint, board);
+                var leftIsValid = leftValidationResponse.isValid;
 
                 var nextPlayOrder = moveToCheck.move.Positions.Last().PlayOrder + 1;
 
@@ -177,21 +212,25 @@ public class CheckersService(IConfiguration _config) : ICheckersService
                         isValid = true,
                         move = new Move()
                         {
-                            Positions = currentPositions
+                            Positions = currentPositions,
+                            JumpedPieces = new List<Coords> { leftValidationResponse.jumpedPiece! }
                         }
                     });
 
                     // Add right position to existing move
                     var nextPosition = new PuckPosition(rightPoint.Row, rightPoint.Col, nextPlayOrder);
                     moveToCheck.move.Positions.Add(nextPosition);
+                    moveToCheck.move.JumpedPieces.Add(rightValidationResponse.jumpedPiece!);
                 }
                 else if (rightIsValid && !leftIsValid)
                 {
                     moveToCheck.move.Positions.Add(new PuckPosition(rightPoint.Row, rightPoint.Col, nextPlayOrder));
+                    moveToCheck.move.JumpedPieces.Add(rightValidationResponse.jumpedPiece!);
                 }
                 else if (!rightIsValid && leftIsValid)
                 {
                     moveToCheck.move.Positions.Add(new PuckPosition(leftPoint.Row, leftPoint.Col, nextPlayOrder));
+                    moveToCheck.move.JumpedPieces.Add(leftValidationResponse.jumpedPiece!);
                 }
                 else if (!rightIsValid && !leftIsValid)
                 {
@@ -206,23 +245,23 @@ public class CheckersService(IConfiguration _config) : ICheckersService
         return movesToCheck.Where(m => m.isValid).Select(m => m.move).ToList();
     }
 
-    internal bool checkJumpCoordinates(Coords startPoint, Coords endPoint, GameBoard board)
+    internal (bool isValid, Coords? jumpedPiece) checkJumpCoordinates(Coords startPoint, Coords endPoint, GameBoard board)
     {
         var colDelta = endPoint.Col > startPoint.Col ? 1 : -1;
         var rowDelta = endPoint.Row > startPoint.Row ? 1 : -1;
 
         var targetRow = board.Rows.FirstOrDefault(r => r.RowNumber == endPoint.Row);
         var nextRow = board.Rows.FirstOrDefault(r => r.RowNumber == startPoint.Row + rowDelta);
-        if (targetRow is null || nextRow is null) return false;
+        if (targetRow is null || nextRow is null) return (false, null);
 
         var targetCol = startPoint.Col + colDelta;
         var cellToJump = nextRow.Cells.FirstOrDefault(c => c.Col == targetCol);
-        if (cellToJump is null || !cellToJump.HasPuck || cellToJump.Puck.Color == PuckColor.Red) return false;
+        if (cellToJump is null || !cellToJump.HasPuck || cellToJump.Puck.Color == PuckColor.Red) return (false, null);
 
         var cellJumpingTo = targetRow.Cells.FirstOrDefault(c => c.Col == endPoint.Col);
-        if (cellJumpingTo is null || cellJumpingTo.HasPuck) return false;
+        if (cellJumpingTo is null || cellJumpingTo.HasPuck) return (false, null);
 
-        return true;
+        return (true, new Coords(cellToJump.Row, cellToJump.Col));
     }
 
     /// <summary>
@@ -247,19 +286,68 @@ public class CheckersService(IConfiguration _config) : ICheckersService
 
     #region AI Methods
 
-    internal async Task<GameBoard> PostGameToAI(GameBoard board, List<Move> validMoves, CancellationToken cancellationToken)
+    internal async Task<Move?> PostGameToAI(GameBoard board, List<Move> validMoves, CancellationToken cancellationToken)
     {
         var key = _config["OpenAI:ApiKey"];
         #pragma warning disable OPENAI001
         var client = new ResponsesClient(apiKey: key);
-        #pragma warning restore OPENAI001
+#pragma warning restore OPENAI001
 
-        var response = await client.CreateResponseAsync(model: "gpt-5.4-mini",
-            userInputText: "Testing");
+        var prompt = BuildPrompt(board, validMoves);
 
-        Console.WriteLine(response.Value.GetOutputText());
+        if (string.IsNullOrWhiteSpace(prompt)) return default;
 
-        return new GameBoard();
+        //var response = await client.CreateResponseAsync(model: "gpt-5.4-mini",
+        //    userInputText: prompt);
+
+        //var rawAIResponse = response.Value.GetOutputText();
+
+        var rawAIResponse = "7";
+
+        if (int.TryParse(rawAIResponse, out var result))
+        {
+            return validMoves.ElementAt(result - 1);
+        }
+
+        // Error in response from AI 
+        _logger.LogError("AI response was not able to parse into an INT.  Raw response: {response}", rawAIResponse);
+        return default;
+    }
+
+    internal string BuildPrompt(GameBoard board, List<Move> validMoves)
+    {
+        try
+        {
+            var prompt = new StringBuilder("You are a checkers AI.  You are playing a game against a human opponent. ");
+            prompt.AppendLine("You are the Red pieces, identified in the game board here as R, or RK for Red King pieces. ");
+            prompt.AppendLine("All I need is for you to reply with the number identifying which move you choose to play and that is it, absolutely nothing else. ");
+            prompt.AppendLine("Each move will list the starting coordinates of the Red Puck and will be followed by coordinates for each position it can move to. ");
+
+            var boardStateJson = JsonSerializer.Serialize(board);
+            prompt.AppendLine($"This is the current board state in JSON: {boardStateJson}");
+
+            prompt.AppendLine("I will now provide you a list of available, valid moves we have pre-identified for the Red player. ");
+            prompt.AppendLine("Please choose the move you feel to be the most aggressive, strategically: ");
+
+            var moveNumber = 1;
+            foreach (var move in validMoves)
+            {
+
+                prompt.AppendLine($"{moveNumber}. ");
+                foreach (var position in move.Positions)
+                {
+                    prompt.Append($" [{position.Row}, {position.Col}]");
+                    if (position != move.Positions.Last()) prompt.Append(" -> ");
+                }
+                moveNumber++;
+            }
+
+            return prompt.ToString();
+        } catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed building prompt for AI in checkers game.");
+            return string.Empty;
+        }
     }
 
     #endregion
@@ -280,8 +368,6 @@ public class CheckersService(IConfiguration _config) : ICheckersService
         public bool finishedValidation { get; set; }
         public bool isValid { get; set; }
     }
-
-    internal record Coords(int Row, int Col);
 
     #endregion
 
