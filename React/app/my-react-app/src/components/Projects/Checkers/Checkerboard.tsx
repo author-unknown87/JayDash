@@ -73,8 +73,10 @@ function createTestGameState(): GameState {
         board.rows[0][i].piece = ""
     }
 
-    board.rows[1][5].piece = "B";
-    board.rows[2][6].piece = "";
+    board.rows[1][5].piece = "";
+    board.rows[1][7].piece = "";
+    board.rows[0][6].piece = "R";
+    board.rows[2][6].piece = "B";
     board.rows[3][5].piece = "RK";
     board.rows[2][2].piece = "";
     board.rows[3][3].piece = "R";

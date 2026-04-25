@@ -1,10 +1,12 @@
 ﻿using JayDash.Data.Models.Checkers;
 using JayDash.Data.Models.Checkers.Enums;
 using JayDash.Services.Interfaces;
+using Microsoft.Extensions.Options;
+using OpenAI.Responses;
 
 namespace JayDash.Services;
 
-public class CheckersService : ICheckersService
+public class CheckersService(IConfiguration _config) : ICheckersService
 {
     public async Task<GameBoard> SendMoveToAI(string boardState, CancellationToken cancellationToken)
     {
@@ -17,11 +19,7 @@ public class CheckersService : ICheckersService
         return gameBoard;
     }
 
-    internal async Task<GameBoard> PostGameToAI(GameBoard board, List<Move> validMoves, CancellationToken cancellationToken)
-    {
-
-        return new GameBoard();
-    }
+    #region Internal Helper Methods
 
     /// <summary>
     /// Validates all possible basic, non-jump moves for Red pieces
@@ -107,9 +105,9 @@ public class CheckersService : ICheckersService
     {
         var validMoves = new List<Move>();
 
-        foreach(var row in board.Rows)
+        foreach (var row in board.Rows)
         {
-            foreach(var cell in row.Cells)
+            foreach (var cell in row.Cells)
             {
                 if (!cell.isPlayable || !cell.HasPuck || cell.Puck.Color == PuckColor.Black) continue;
 
@@ -119,20 +117,19 @@ public class CheckersService : ICheckersService
 
                 if (!cell.Puck.IsKing) continue;
 
-                //// backwards right jump
-                //var validBackRightJump = ValidateJumpMove(cell.Row, cell.Col, board, Direction.Backward);
-
-                //// backwards left jump
-                //var validBackLeftJump = ValidateJumpMove(cell.Row, cell.Col, board, Direction.Backward);
+                // backwards jumps
+                var validKingJumpMoves = ValidateJumpMove(cell.Row, cell.Col, board, Direction.Backward);
+                if (validKingJumpMoves is not null) validMoves.AddRange(validKingJumpMoves);
             }
         }
 
         return validMoves;
     }
 
-    internal List<Move> ValidateJumpMove(int startRow, int startCol, GameBoard board, Direction verticalDirection)
+    internal List<Move> ValidateJumpMove(int startRow, int startCol, GameBoard board, Direction direction)
     {
         var movesToCheck = new List<MoveToCheck>();
+        var rowDelta = direction == Direction.Forward ? 2 : -2;
         movesToCheck.Add(new MoveToCheck()
         {
             finishedValidation = false,
@@ -146,23 +143,21 @@ public class CheckersService : ICheckersService
             }
         });
 
-        var moveIsFinished = false;
-
-        while(movesToCheck.Any(m => !m.finishedValidation))
+        while (movesToCheck.Any(m => !m.finishedValidation))
         {
             var newMoves = new List<MoveToCheck>();
-            foreach(var moveToCheck in movesToCheck.Where(m => !m.finishedValidation).ToList())
+            foreach (var moveToCheck in movesToCheck.Where(m => !m.finishedValidation).ToList())
             {
                 var startPoint = new Coords(
                     Row: moveToCheck.move.Positions.Last().Row,
                     Col: moveToCheck.move.Positions.Last().Col);
 
                 // check right
-                var rightPoint = new Coords(Row: startPoint.Row + 2, Col: startPoint.Col + 2);
+                var rightPoint = new Coords(Row: startPoint.Row + rowDelta, Col: startPoint.Col + 2);
                 var rightIsValid = this.checkJumpCoordinates(startPoint, rightPoint, board);
 
                 // check left
-                var leftPoint = new Coords(Row: startPoint.Row + 2, Col: startPoint.Col - 2);
+                var leftPoint = new Coords(Row: startPoint.Row + rowDelta, Col: startPoint.Col - 2);
                 var leftIsValid = this.checkJumpCoordinates(startPoint, leftPoint, board);
 
                 var nextPlayOrder = moveToCheck.move.Positions.Last().PlayOrder + 1;
@@ -189,13 +184,16 @@ public class CheckersService : ICheckersService
                     // Add right position to existing move
                     var nextPosition = new PuckPosition(rightPoint.Row, rightPoint.Col, nextPlayOrder);
                     moveToCheck.move.Positions.Add(nextPosition);
-                } else if (rightIsValid && !leftIsValid)
+                }
+                else if (rightIsValid && !leftIsValid)
                 {
                     moveToCheck.move.Positions.Add(new PuckPosition(rightPoint.Row, rightPoint.Col, nextPlayOrder));
-                } else if (!rightIsValid && leftIsValid)
+                }
+                else if (!rightIsValid && leftIsValid)
                 {
                     moveToCheck.move.Positions.Add(new PuckPosition(leftPoint.Row, leftPoint.Col, nextPlayOrder));
-                } else if (!rightIsValid && !leftIsValid)
+                }
+                else if (!rightIsValid && !leftIsValid)
                 {
                     moveToCheck.finishedValidation = true;
                     moveToCheck.isValid = moveToCheck.move.Positions.Count > 1;
@@ -210,13 +208,14 @@ public class CheckersService : ICheckersService
 
     internal bool checkJumpCoordinates(Coords startPoint, Coords endPoint, GameBoard board)
     {
-        var direction = endPoint.Col > startPoint.Col ? Direction.Right : Direction.Left;
+        var colDelta = endPoint.Col > startPoint.Col ? 1 : -1;
+        var rowDelta = endPoint.Row > startPoint.Row ? 1 : -1;
 
         var targetRow = board.Rows.FirstOrDefault(r => r.RowNumber == endPoint.Row);
-        var nextRow = board.Rows.FirstOrDefault(r => r.RowNumber == startPoint.Row + 1);
+        var nextRow = board.Rows.FirstOrDefault(r => r.RowNumber == startPoint.Row + rowDelta);
         if (targetRow is null || nextRow is null) return false;
 
-        var targetCol = direction == Direction.Right ? startPoint.Col + 1 : startPoint.Col - 1;
+        var targetCol = startPoint.Col + colDelta;
         var cellToJump = nextRow.Cells.FirstOrDefault(c => c.Col == targetCol);
         if (cellToJump is null || !cellToJump.HasPuck || cellToJump.Puck.Color == PuckColor.Red) return false;
 
@@ -244,6 +243,29 @@ public class CheckersService : ICheckersService
         return validMoves;
     }
 
+    #endregion
+
+    #region AI Methods
+
+    internal async Task<GameBoard> PostGameToAI(GameBoard board, List<Move> validMoves, CancellationToken cancellationToken)
+    {
+        var key = _config["OpenAI:ApiKey"];
+        #pragma warning disable OPENAI001
+        var client = new ResponsesClient(apiKey: key);
+        #pragma warning restore OPENAI001
+
+        var response = await client.CreateResponseAsync(model: "gpt-5.4-mini",
+            userInputText: "Testing");
+
+        Console.WriteLine(response.Value.GetOutputText());
+
+        return new GameBoard();
+    }
+
+    #endregion
+
+    #region Internal Models
+
     internal enum Direction
     {
         Left,
@@ -260,4 +282,8 @@ public class CheckersService : ICheckersService
     }
 
     internal record Coords(int Row, int Col);
+
+    #endregion
+
+
 }
