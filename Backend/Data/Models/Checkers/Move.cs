@@ -2,8 +2,7 @@
 
 public class Move
 {
-    public PuckPosition StartPosition { get; set; }
-    public PuckPosition EndPosition { get; set; }
+    public List<PuckPosition> Positions { get; set; }
 }
 
-public readonly record struct PuckPosition(int Row, int Col);
+public readonly record struct PuckPosition(int Row, int Col, int PlayOrder);

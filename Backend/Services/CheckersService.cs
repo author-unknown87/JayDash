@@ -1,7 +1,6 @@
 ﻿using JayDash.Data.Models.Checkers;
-using JayDash.Services.Interfaces;
 using JayDash.Data.Models.Checkers.Enums;
-using Microsoft.IdentityModel.Tokens;
+using JayDash.Services.Interfaces;
 
 namespace JayDash.Services;
 
@@ -82,10 +81,15 @@ public class CheckersService : ICheckersService
 
             if (!targetCell.HasPuck)
             {
-                return new Move
+                var positions = new List<PuckPosition>()
                 {
-                    StartPosition = new PuckPosition(startCell.Row, startCell.Col),
-                    EndPosition = new PuckPosition(targetCell.Row, targetCell.Col)
+                    new PuckPosition(startCell.Row, startCell.Col, PlayOrder : 1),
+                    new PuckPosition(targetCell.Row, targetCell.Col, PlayOrder : 2)
+                };
+
+                return new Move()
+                {
+                    Positions = positions
                 };
             }
 
@@ -108,37 +112,52 @@ public class CheckersService : ICheckersService
             foreach(var cell in row.Cells)
             {
                 if (!cell.isPlayable || !cell.HasPuck || cell.Puck.Color == PuckColor.Black) continue;
-                var validLeftJumpMoves = ValidateJumpMove(cell, board, Direction.Left);
+
+                // Basic left jump
+                var validLeftJumpMoves = ValidateJumpMove(cell, board, Direction.Left, Direction.Forward);
                 if (validLeftJumpMoves is not null) validMoves.AddRange(validLeftJumpMoves);
 
-                var validRightJumpMoves = ValidateJumpMove(cell, board, Direction.Right);
+                // Basic right jump
+                var validRightJumpMoves = ValidateJumpMove(cell, board, Direction.Right, Direction.Forward);
                 if (validRightJumpMoves is not null) validMoves.Add(validRightJumpMoves);
+
+                if (!cell.Puck.IsKing) continue;
+
+                // backwards right jump
+                var validBackRightJump = ValidateJumpMove(cell, board, Direction.Right, Direction.Backward);
+
+                // backwards left jump
+                var validBackLeftJump = ValidateJumpMove(cell, board, Direction.Left, Direction.Backward);
             }
         }
 
         return validMoves;
 
-        static Move? ValidateJumpMove(CheckersCell currentCell, GameBoard board, Direction direction)
+        static Move? ValidateJumpMove(CheckersCell currentCell, GameBoard board, Direction horizontalDirection, Direction verticalDirection)
         {
-            var nextRow = board.Rows.FirstOrDefault(r => r.RowNumber == currentCell.Row + 1);
-            if (nextRow is null) return default;
+            var rowDelta = verticalDirection == Direction.Forward ? 1 : -1;
+            var targetRow = board.Rows.FirstOrDefault(r => r.RowNumber == currentCell.Row + rowDelta);
+            if (targetRow is null) return default;
 
             // validate basic puck jump 
-            var oneCellDelta = direction == Direction.Left ? -1 : 1;
-            var cellOneAway = nextRow.Cells.FirstOrDefault(c => c.Col == currentCell.Col + oneCellDelta);
+            var oneCellDelta = horizontalDirection == Direction.Left ? -1 : 1;
+            var cellOneAway = targetRow.Cells.FirstOrDefault(c => c.Col == currentCell.Col + oneCellDelta);
             if (cellOneAway is null || !cellOneAway.HasPuck || cellOneAway.Puck.Color == PuckColor.Red) return default;
 
-            var twoRowsAway = board.Rows.FirstOrDefault(r => r.RowNumber == currentCell.Row + 2);
+            var twoRowsAway = board.Rows.FirstOrDefault(r => r.RowNumber == currentCell.Row + (2 * rowDelta));
             if (twoRowsAway is null) return default;
 
-            var twoCellDelta = direction == Direction.Left ? -2 : 2;
+            var twoCellDelta = horizontalDirection == Direction.Left ? -2 : 2;
             var leftCellTwoAway = twoRowsAway.Cells.FirstOrDefault(c => c.Col == currentCell.Col + twoCellDelta);
             if (leftCellTwoAway is null || leftCellTwoAway.HasPuck) return default;
 
             return new Move
             {
-                StartPosition = new PuckPosition(currentCell.Row, currentCell.Col),
-                EndPosition = new PuckPosition(leftCellTwoAway.Row, leftCellTwoAway.Col)
+                Positions = new List<PuckPosition>()
+                {
+                    new PuckPosition(currentCell.Row, currentCell.Col, PlayOrder: 1),
+                    new PuckPosition(leftCellTwoAway.Row, leftCellTwoAway.Col, PlayOrder: 2)
+                }
             };
         }
     }
@@ -164,6 +183,8 @@ public class CheckersService : ICheckersService
     private enum Direction
     {
         Left,
-        Right
+        Right,
+        Forward,
+        Backward
     }
 }
