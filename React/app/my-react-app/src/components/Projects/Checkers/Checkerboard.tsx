@@ -76,7 +76,8 @@ function createTestGameState(): GameState {
     board.rows[1][5].piece = "";
     board.rows[1][7].piece = "";
     board.rows[0][6].piece = "R";
-    board.rows[2][6].piece = "B";
+    board.rows[2][6].piece = "";
+    board.rows[1][7].piece = "B";
     board.rows[3][5].piece = "RK";
     board.rows[2][2].piece = "";
     board.rows[3][3].piece = "R";
@@ -188,7 +189,7 @@ export default function Checkerboard ({
         const jumpedRow = move.coords.row + 1;
         const jumpedCell = (isJumpRight) ? activeCell.coords.cell + 1 : activeCell.coords.cell - 1;
         const jumpedPiece = gameState.rows[jumpedRow][jumpedCell].piece;
-        if (jumpedPiece !== "R") return { isJump: false };
+        if (!jumpedPiece.includes("R")) return { isJump: false };
 
         return { isJump: true, jumpedPiece: {row: jumpedRow, cell: jumpedCell} };
     }
