@@ -126,7 +126,9 @@ export default function Checkerboard ({
     function updateGameState(newSpaceCoords:Coords, 
         oldSpaceCoords:Coords, 
         piece: string, 
-        jumpedPiece?: Coords) {
+        player: string,
+        jumpedPieces?: Coords[]
+    ) {
         setGameState((currentState) => {
             const updatedState = {
                 ...currentState,
@@ -135,11 +137,13 @@ export default function Checkerboard ({
 
             updatedState.rows[newSpaceCoords.row][newSpaceCoords.cell].piece = piece;
             updatedState.rows[oldSpaceCoords.row][oldSpaceCoords.cell].piece = "";
-            updatedState.whoMovedLast = "B";
+            updatedState.whoMovedLast = player;
 
-            // remove jumped piece, if one was jumped
-            if (jumpedPiece) {
-                updatedState.rows[jumpedPiece.row][jumpedPiece.cell].piece = "";
+            // remove jumped piece, if any were jumped
+            if (jumpedPieces && jumpedPieces.length > 0) {
+                jumpedPieces.forEach((piece) => {
+                    updatedState.rows[piece.row][piece.cell].piece = "";
+                })
             }
 
             return updatedState;
@@ -217,15 +221,43 @@ export default function Checkerboard ({
         return (spaceIsEmpty && directionIsValid);
     }
 
-    function postMoveToBackend() {
+    async function postMoveToBackend() {
         const serializedBoard = JSON.stringify(gameState);
-        const postDataResponse = FetchData({
-            endpoint: "Checkers/SubmitPlayerMove",
+        const response = await FetchData({
+            endpoint: "Checkers/GetMoveFromAI",
             action: "POST",
             postData: { BoardState: serializedBoard }
         }); 
 
-        console.log(postDataResponse);
+        console.log(response);
+
+        // TODO: tie this to an actual model
+        // TODO: check for errors and handle gracefully
+        const lastIndex = response.move.positions.length - 1;
+        const oldSpace:Coords = {
+            row: response.move.positions[0].row,
+            cell: response.move.positions[0].col
+        };
+
+        const newSpace:Coords = {
+            row: response.move.positions[lastIndex].row,
+            cell: response.move.positions[lastIndex].col
+        };
+
+        // TODO: figure out what this is from the original coordinates on the board
+        const piece = response.pieceMoved;
+
+        const jumpedPieces: Coords[] = [];
+        response.move.jumpedPieces.forEach((piece) => {
+            const jumpedPiece: Coords = {
+                row: piece.row,
+                cell: piece.col
+            };
+
+            jumpedPieces.push(jumpedPiece);
+        })
+
+        updateGameState(newSpace, oldSpace, piece, "R", jumpedPieces);
     }
 
     function handlePuckClick(move: Move) {
@@ -250,6 +282,12 @@ export default function Checkerboard ({
         // validate move
         const moveIsJump = isKing ? determineIfMoveIsJumpForKing(move) : determineIfMoveIsJump(move);
         const moveIsValid = validateMove(move, moveIsJump.isJump);
+
+        const jumpedPieces: Coords[] = [];
+        if (moveIsJump.isJump) {
+            jumpedPieces.push(moveIsJump.jumpedPiece);
+        }
+
         // TODO: Handle this gracefully, with feedback to the user
         if (!moveIsValid) {
             setActiveCell(defaultActiveCell)
@@ -261,7 +299,7 @@ export default function Checkerboard ({
         if (move.coords.row === 0 && !piece.includes("K")) {
             piece = piece + "K";
         }
-        updateGameState(move.coords, activeCell.coords, piece, moveIsJump.jumpedPiece); 
+        updateGameState(move.coords, activeCell.coords, piece, "B", jumpedPieces); 
         // clear coords
         setActiveCell(defaultActiveCell)
     }

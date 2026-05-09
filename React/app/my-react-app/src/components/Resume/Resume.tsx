@@ -21,9 +21,8 @@ export default function Resume() {
         const parameters = [
             {key: "configName", value: "SeekingPosition"}
         ];
-
         const response = await FetchData({endpoint: "SystemConfiguration", action: HttpAction.Get, parameters: parameters});
-        const isSeekingPosition = response?.data.value === "true";
+        const isSeekingPosition = response?.value === "true";
         setIsSeeking(isSeekingPosition);
     }
 
@@ -34,7 +33,7 @@ export default function Resume() {
         })
 
         if (resumeResponse !== undefined) {
-            setResume(resumeResponse.data);
+            setResume(resumeResponse);
         }
     }
 

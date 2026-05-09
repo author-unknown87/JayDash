@@ -61,7 +61,7 @@ export default async function FetchData({
                 break;
         }
 
-        return response;
+        return response?.data;
     } catch (err) {
         console.error(err);
     }

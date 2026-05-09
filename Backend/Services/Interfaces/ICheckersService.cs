@@ -1,4 +1,5 @@
 ﻿using JayDash.Data.Models.Checkers;
+using JayDash.Data.Models.Responses;
 
 namespace JayDash.Services.Interfaces;
 
@@ -10,5 +11,5 @@ public interface ICheckersService
     /// <param name="board"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<GameBoard> SendMoveToAI(string boardState, CancellationToken cancellationToken);
+    Task<GetAIMoveResponse> GetMoveFromAI(string boardState, CancellationToken cancellationToken);
 }

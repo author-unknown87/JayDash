@@ -1,5 +1,6 @@
 ﻿using JayDash.Data.Models.Checkers;
 using JayDash.Data.Models.Checkers.Enums;
+using JayDash.Data.Models.Responses;
 using JayDash.Services.Interfaces;
 using OpenAI.Responses;
 using System.Text;
@@ -9,7 +10,14 @@ namespace JayDash.Services;
 
 public class CheckersService(IConfiguration _config, ILogger<CheckersService> _logger) : ICheckersService
 {
-    public async Task<GameBoard> SendMoveToAI(string boardState, CancellationToken cancellationToken)
+    /// <summary>
+    /// Sends the current game board state to the AI and retrieves the AI's chosen move asynchronously.
+    /// </summary>
+    /// <param name="boardState">A string representation of the current game board state.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the move selected by the AI, or null
+    /// if no move is available.</returns>
+    public async Task<GetAIMoveResponse> GetMoveFromAI(string boardState, CancellationToken cancellationToken)
     {
         var gameBoard = new GameBoard(boardState);
 
@@ -17,41 +25,45 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
 
         var chosenMove = await this.PostGameToAI(gameBoard, validMoves, cancellationToken);
 
-        // TODO: indicate an error to the user if something went wrong here
-        if (chosenMove is null) return gameBoard;
-
-        gameBoard = UpdateGameBoard(gameBoard, chosenMove);
-
-        return gameBoard;
+        return this.ShapeResponse(gameBoard, chosenMove);
     }
 
     #region Internal Helper Methods
 
-    internal GameBoard UpdateGameBoard(GameBoard board, Move chosenMove)
+    internal GetAIMoveResponse ShapeResponse(GameBoard gameBoard, Move? chosenMove)
     {
-        var firstPosition = chosenMove.Positions.First();
-        var lastPosition = chosenMove.Positions.Last();
-
-        var startingRow = board.Rows.First(r => r.RowNumber == firstPosition.Row);
-        var startingCell = startingRow.Cells.First(c => c.Col == firstPosition.Col);
-        var movedPuck = startingCell.Puck;
-        startingCell.Puck = null;
-
-        var endingRow = board.Rows.First(r => r.RowNumber == lastPosition.Row);
-        var endingCell = endingRow.Cells.First(c => c.Col == lastPosition.Col);
-        endingCell.Puck = movedPuck;
-
-        // King the piece, if it moved to the back row
-        if (endingCell.Row == 7) endingCell.Puck.IsKing = true;
-
-        foreach(var removedPiece in chosenMove.JumpedPieces)
+        try
         {
-            var targetRow = board.Rows.First(r => r.RowNumber == removedPiece.Row);
-            var targetCell = targetRow.Cells.First(c => c.Col == removedPiece.Col);
-            targetCell.Puck = null;
-        }
+            // System error during move analysis earlier
+            if (chosenMove is null)
+            {
+                return new GetAIMoveResponse
+                {
+                    Move = chosenMove,
+                    PieceMoved = string.Empty
+                };
+            }
 
-        return board;
+            var firstPosition = chosenMove.Positions.First();
+            var row = gameBoard.Rows.FirstOrDefault(r => r.RowNumber == firstPosition.Row);
+            var puck = row.Cells.First(c => c.Col == firstPosition.Col).Puck;
+            var piece = puck.Color == PuckColor.Red ? "R" : "B";
+            if (puck.IsKing) piece += "K";
+
+            return new GetAIMoveResponse
+            {
+                Move = chosenMove,
+                PieceMoved = piece
+            };
+        } catch (Exception ex)
+        {
+            _logger.LogError("Failed to shape AI move response.  Check logs for details.");
+            return new GetAIMoveResponse
+            {
+                Move = null,
+                PieceMoved = string.Empty
+            };
+        }
     }
 
     /// <summary>
@@ -129,7 +141,7 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
     }
 
     /// <summary>
-    /// Validates all possible jump moves for red pieces
+    /// Analyzes board state and gets all possible jump moves for Red
     /// </summary>
     /// <param name="board"></param>
     /// <param name="cancellationToken"></param>
@@ -159,6 +171,14 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
         return validMoves;
     }
 
+    /// <summary>
+    /// Validates whether a jump move is valid 
+    /// </summary>
+    /// <param name="startRow"></param>
+    /// <param name="startCol"></param>
+    /// <param name="board"></param>
+    /// <param name="direction"></param>
+    /// <returns></returns>
     internal List<Move> ValidateJumpMove(int startRow, int startCol, GameBoard board, Direction direction)
     {
         var movesToCheck = new List<MoveToCheck>();
@@ -245,6 +265,13 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
         return movesToCheck.Where(m => m.isValid).Select(m => m.move).ToList();
     }
 
+    /// <summary>
+    /// Validates a jump move between two coordinates on the game board and identifies the piece being jumped over.
+    /// </summary>
+    /// <param name="startPoint">The starting coordinates of the jump.</param>
+    /// <param name="endPoint">The destination coordinates of the jump.</param>
+    /// <param name="board">The game board on which the move is being evaluated.</param>
+    /// <returns>A tuple indicating whether the jump is valid and the coordinates of the jumped piece, if any.</returns>
     internal (bool isValid, Coords? jumpedPiece) checkJumpCoordinates(Coords startPoint, Coords endPoint, GameBoard board)
     {
         var colDelta = endPoint.Col > startPoint.Col ? 1 : -1;
@@ -286,6 +313,13 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
 
     #region AI Methods
 
+    /// <summary>
+    /// Sends the current game state and valid moves to the AI service and retrieves the AI's selected move.
+    /// </summary>
+    /// <param name="board">The current game board state.</param>
+    /// <param name="validMoves">A list of valid moves available to the AI.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>The move selected by the AI, or null if the response is invalid.</returns>
     internal async Task<Move?> PostGameToAI(GameBoard board, List<Move> validMoves, CancellationToken cancellationToken)
     {
         var key = _config["OpenAI:ApiKey"];
@@ -297,37 +331,44 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
 
         if (string.IsNullOrWhiteSpace(prompt)) return default;
 
+        var topLimit = validMoves.Count();
+        var rand = new Random();
+        var chosenMove = rand.Next(1, topLimit);
+        return validMoves.ElementAt(chosenMove - 1);
+
+        // TODO: Setup the model string so it is a config value, NOT hard coded
         //var response = await client.CreateResponseAsync(model: "gpt-5.4-mini",
         //    userInputText: prompt);
 
         //var rawAIResponse = response.Value.GetOutputText();
 
-        var rawAIResponse = "7";
+        //if (int.TryParse(rawAIResponse, out var result))
+        //{
+        //    return validMoves.ElementAt(result - 1);
+        //}
 
-        if (int.TryParse(rawAIResponse, out var result))
-        {
-            return validMoves.ElementAt(result - 1);
-        }
 
         // Error in response from AI 
-        _logger.LogError("AI response was not able to parse into an INT.  Raw response: {response}", rawAIResponse);
-        return default;
+        //_logger.LogError("AI response was not able to parse into an INT.  Raw response: {response}", rawAIResponse);
+        //return default;
     }
 
+    /// <summary>
+    /// Builds a prompt string for a checkers AI, including the current board state and a list of possible moves.
+    /// </summary>
+    /// <param name="board">The current game board.</param>
+    /// <param name="validMoves">A list of valid moves for the Red player.</param>
+    /// <returns>A formatted prompt string for the AI, or an empty string if an error occurs.</returns>
     internal string BuildPrompt(GameBoard board, List<Move> validMoves)
     {
         try
         {
-            var prompt = new StringBuilder("You are a checkers AI.  You are playing a game against a human opponent. ");
-            prompt.AppendLine("You are the Red pieces, identified in the game board here as R, or RK for Red King pieces. ");
-            prompt.AppendLine("All I need is for you to reply with the number identifying which move you choose to play and that is it, absolutely nothing else. ");
-            prompt.AppendLine("Each move will list the starting coordinates of the Red Puck and will be followed by coordinates for each position it can move to. ");
-
+            var prompt = new StringBuilder("You are a checkers AI. ");
+            prompt.AppendLine("You are playing Red, represented as R, or RK for Red King pieces. ");
             var boardStateJson = JsonSerializer.Serialize(board);
-            prompt.AppendLine($"This is the current board state in JSON: {boardStateJson}");
-
-            prompt.AppendLine("I will now provide you a list of available, valid moves we have pre-identified for the Red player. ");
-            prompt.AppendLine("Please choose the move you feel to be the most aggressive, strategically: ");
+            prompt.AppendLine($"Current board state: {boardStateJson}");
+            prompt.AppendLine("This is a list of possible Red moves.  Each move is a list of coordinates the piece will move through in order.");
+            prompt.AppendLine("Please choose the move you feel to be the most aggressive: ");
 
             var moveNumber = 1;
             foreach (var move in validMoves)
@@ -342,6 +383,7 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
                 moveNumber++;
             }
 
+            prompt.AppendLine("Respond only with the number of your chosen move.  Anything more than that and the response will not work for our needs.");
             return prompt.ToString();
         } catch (Exception ex)
         {

@@ -7,11 +7,11 @@ namespace JayDash.Controllers;
 [Route("api/[controller]")]
 public class CheckersController(ICheckersService _checkersService) : ControllerBase
 {
-    [HttpPost("SubmitPlayerMove")]
-    public async Task<IActionResult> SubmitPlayerMove([FromBody] SubmitMoveRequest request, CancellationToken cancellationToken = default)
+    [HttpPost("GetMoveFromAI")]
+    public async Task<IActionResult> GetMoveFromAI([FromBody] SubmitMoveRequest request, CancellationToken cancellationToken = default)
     {
-        var response = _checkersService.SendMoveToAI(request.BoardState, cancellationToken);
-        return Ok();
+        var response = await _checkersService.GetMoveFromAI(request.BoardState, cancellationToken);
+        return (response != null) ? Ok(response) : Ok("System Error");
     }
 }
 
