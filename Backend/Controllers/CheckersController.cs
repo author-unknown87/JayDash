@@ -11,6 +11,8 @@ public class CheckersController(ICheckersService _checkersService) : ControllerB
     public async Task<IActionResult> GetMoveFromAI([FromBody] SubmitMoveRequest request, CancellationToken cancellationToken = default)
     {
         var response = await _checkersService.GetMoveFromAI(request.BoardState, cancellationToken);
+        // five second pause to simulate AI processing
+        Thread.Sleep(2 * 1000);
         return (response != null) ? Ok(response) : Ok("System Error");
     }
 }

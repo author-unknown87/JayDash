@@ -102,15 +102,20 @@ const defaultActiveCell: ActiveCell = {
     piece: ""
 }
 
+const PLAYER = "player";
+const CHESTER = "chester";
+
 export default function Checkerboard ({
     quitGame
 }: CheckerboardProps) {
     // ----- Use State Definitions ----- //
     const [gameState, setGameState] = useState<GameState>(newGameState);
     const [activeCell, setActiveCell] = useState<ActiveCell>(defaultActiveCell);
+    const [playerTurn, setPlayerTurn] = useState<string>(PLAYER);
 
     // ----- Use Effect Definitions ----- //
     useEffect(() => {
+        // TODO: this should rely on our new "playerTurn" state instead
         if (gameState.whoMovedLast === "B") {
             postMoveToBackend();
         }
@@ -122,6 +127,7 @@ export default function Checkerboard ({
     function restart() {
         setGameState(newGameState);
         setActiveCell(defaultActiveCell)
+        setPlayerTurn(PLAYER);
     }
 
     function updateGameState(newSpaceCoords:Coords, 
@@ -230,8 +236,6 @@ export default function Checkerboard ({
             postData: { BoardState: serializedBoard }
         }); 
 
-        console.log(response);
-
         // TODO: tie this to an actual model
         // TODO: check for errors and handle gracefully
         const lastIndex = response.move.positions.length - 1;
@@ -259,9 +263,13 @@ export default function Checkerboard ({
         })
 
         updateGameState(newSpace, oldSpace, piece, "R", jumpedPieces);
+        setPlayerTurn(PLAYER);
     }
 
     function handlePuckClick(move: Move) {
+        // Guard clause, prevent multiple player moves
+        if (playerTurn === CHESTER) return;
+
         const isFirstClick = activeCell.coords.cell === -1;
         const isKing = activeCell.piece.includes("K");
         const pieceAtLocation = gameState.rows[move.coords.row][move.coords.cell].piece;
@@ -303,6 +311,7 @@ export default function Checkerboard ({
         updateGameState(move.coords, activeCell.coords, piece, "B", jumpedPieces); 
         // clear coords
         setActiveCell(defaultActiveCell)
+        setPlayerTurn(CHESTER);
     }
 
     // ----- Component Render ----- //
@@ -330,8 +339,8 @@ export default function Checkerboard ({
                 </div>
                 <div className={styles.SecondColumn}>
                     <div className={styles.MoveTracker}>
-                        <div className={styles.MoveCue}>Your Move</div>
-                        <div className={`${styles.MoveCue} ${styles.ActiveCue}`}>Chester's Move</div>
+                        <div className={`${styles.MoveCue} ${playerTurn === PLAYER && styles.ActiveCue}`}>Your Move</div>
+                        <div className={`${styles.MoveCue} ${playerTurn === CHESTER && styles.ActiveCue}`}>Chester's Move</div>
                     </div>
                     <div className={styles.ChatWindow}>
                         <ul>
