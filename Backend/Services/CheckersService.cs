@@ -85,17 +85,21 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
 
                 // validate forward direction
                 var nextRow = board.Rows.FirstOrDefault(r => r.RowNumber == cell.Row + 1);
-                if (nextRow is null) continue;
-                var leftCell = nextRow.Cells.FirstOrDefault(c => c.Col == cell.Col - 1);
-                var rightCell = nextRow.Cells.FirstOrDefault(c => c.Col == cell.Col + 1);
+                if (nextRow is null && !cell.Puck.IsKing) continue;
 
-                // Check left
-                var leftMove = validateCellMove(targetCell: leftCell, startCell: cell);
-                if (leftMove is not null) validMoves.Add(leftMove);
+                if (nextRow is not null)
+                {
+                    var leftCell = nextRow.Cells.FirstOrDefault(c => c.Col == cell.Col - 1);
+                    var rightCell = nextRow.Cells.FirstOrDefault(c => c.Col == cell.Col + 1);
 
-                // Check Right
-                var rightMove = validateCellMove(targetCell: rightCell, startCell: cell);
-                if (rightMove is not null) validMoves.Add(rightMove);
+                    // Check left
+                    var leftMove = validateCellMove(targetCell: leftCell, startCell: cell);
+                    if (leftMove is not null) validMoves.Add(leftMove);
+
+                    // Check Right
+                    var rightMove = validateCellMove(targetCell: rightCell, startCell: cell);
+                    if (rightMove is not null) validMoves.Add(rightMove);
+                }
 
                 // if king, validate backwards directions too
                 if (!cell.Puck.IsKing) continue;

@@ -2,7 +2,7 @@ import styles from './Checkerboard.module.scss'
 import BoardRow from './BoardRow/BoardRow'
 import GameMenu from './GameMenu/GameMenu'
 import { GameState, GameStateCell, Coords, ActiveCellContext, Move, ActiveCell } from '../../../models/CheckersTypes'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import FetchData from '../../../hooks/FetchData'
 
 // ----- Local Types ----- //
@@ -23,17 +23,15 @@ function determinePieceForDefaultState(row: number, cell: number): string {
 
     switch(row) {
         case 0:
+        case 2:
             return (evenSpace) ? "R" : "";
         case 1:
             return (!evenSpace) ? "R" : "";
-        case 2:
-            return (evenSpace) ? "R" : "";
         case 5:
+        case 7:
             return (!evenSpace) ? "B" : "";
         case 6:
             return (evenSpace) ? "B" : "";
-        case 7:
-            return (!evenSpace) ? "B" : "";
         default:
             return "";
     }
@@ -75,12 +73,8 @@ function createTestGameState(): GameState {
         }
     }
 
-    board.rows[2][4].piece = "BK";
-    board.rows[3][3].piece ="R";
-    board.rows[3][5].piece = "RK";
-    board.rows[1][5].piece = "R";
-    board.rows[1][3].piece = "R";
-    board.rows[1][1].piece = "R";
+    board.rows[6][2].piece = "R";
+    board.rows[3][3].piece = "B";
 
     return board;
 }
@@ -175,6 +169,13 @@ export default function Checkerboard ({
                 ...currentState,
                 rows: currentState.rows.map((row) => row.map(cell => ({...cell})))
             }
+
+            // King the piece that moved if it was into a back row
+            const isRed = piece.includes("R");
+            const isKing = piece.includes("K");
+            const redNeedsKing = isRed && !isKing && newSpaceCoords.row === 7;
+            const blackNeedsKing = !isRed && !isKing && newSpaceCoords.row === 0;
+            if (redNeedsKing || blackNeedsKing) piece += "K";
 
             updatedState.rows[newSpaceCoords.row][newSpaceCoords.cell].piece = piece;
             updatedState.rows[oldSpaceCoords.row][oldSpaceCoords.cell].piece = "";
@@ -348,7 +349,6 @@ export default function Checkerboard ({
 
         // Check for additional moves
         const additionalJumpAvailable = CheckForAdditionalJumpChance(move.coords, piece, jumpedPieces);
-        console.log(additionalJumpAvailable);
         if (!additionalJumpAvailable) {
             setPlayerTurn(CHESTER);
             requestAIMove();
