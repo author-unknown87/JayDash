@@ -69,26 +69,18 @@ function createTestGameState(): GameState {
     const board = createFreshGameState();
 
     // make adjustments
-    for (let i = 0; i <= 7; i++) {
-        board.rows[0][i].piece = ""
+    for (let row = 0; row <= 7; row++) {
+        for (let col = 0; col <= 7; col++) {
+            board.rows[row][col].piece = ""
+        }
     }
 
-    board.rows[1][5].piece = "";
-    board.rows[1][7].piece = "";
-    board.rows[0][6].piece = "R";
-    board.rows[2][6].piece = "";
-    board.rows[1][7].piece = "B";
+    board.rows[2][4].piece = "BK";
+    board.rows[3][3].piece ="R";
     board.rows[3][5].piece = "RK";
-    board.rows[2][2].piece = "";
-    board.rows[3][3].piece = "R";
-    board.rows[5][3].piece = "";
-    board.rows[4][4].piece = "B";
-    board.rows[5][1].piece = "";
-    board.rows[3][1].piece = "B";
-    board.rows[6][0].piece = "";
-    board.rows[5][1].piece = "B";
-    board.rows[6][4].piece = "";
-    board.rows[5][3].piece = "B";
+    board.rows[1][5].piece = "R";
+    board.rows[1][3].piece = "R";
+    board.rows[1][1].piece = "R";
 
     return board;
 }
@@ -114,12 +106,6 @@ export default function Checkerboard ({
     const [playerTurn, setPlayerTurn] = useState<string>(PLAYER);
 
     // ----- Use Effect Definitions ----- //
-    useEffect(() => {
-        // TODO: this should rely on our new "playerTurn" state instead
-        if (gameState.whoMovedLast === "B") {
-            postMoveToBackend();
-        }
-    }, [gameState])
 
     // ----- Component Methods ----- //
 
@@ -128,6 +114,54 @@ export default function Checkerboard ({
         setGameState(newGameState);
         setActiveCell(defaultActiveCell)
         setPlayerTurn(PLAYER);
+    }
+
+    /** Checks for possibility of another jump move for the player */
+    function CheckForAdditionalJumpChance(startSpace:Coords, piece:string, jumpedPieces: Coords[]):boolean {
+        const isKing = piece.includes("K");
+        const forwardRow = gameState.rows[startSpace.row - 2];
+        const jumpedForwardRow = gameState.rows[startSpace.row - 1];
+
+        if (!forwardRow && !isKing) return false;
+
+        if (forwardRow) {
+            // Check forward jump left
+            var leftForwardIsValid = validateCoordinates(forwardRow, jumpedForwardRow, startSpace, true);
+            if (leftForwardIsValid) return true;
+
+            // Check forward jump right
+            var rightForwardIsValid = validateCoordinates(forwardRow, jumpedForwardRow, startSpace, false);
+            if (rightForwardIsValid) return true;
+        }
+
+        if (!isKing) return false;
+
+        const backwardsRow = gameState.rows[startSpace.row + 2];
+        const jumpedBackwardsRow = gameState.rows[startSpace.row + 1];
+        if (!backwardsRow) return false;
+
+        // IF KING check backward jump left
+        var leftBackIsValid = validateCoordinates(backwardsRow, jumpedBackwardsRow, startSpace, true);
+        if (leftBackIsValid) return true;
+
+        // IF KING check backward jump right
+        var rightBackIsValid = validateCoordinates(backwardsRow, jumpedBackwardsRow, startSpace, false);
+        if (rightBackIsValid) return true;
+
+        return false;
+
+        /** Internal function only */
+        function validateCoordinates(targetRow:GameStateCell[], jumpedRow:GameStateCell[], startSpace:Coords, isLeft:Boolean) {
+            const cellSign = isLeft ? -1 : 1;
+
+            const cell = targetRow[startSpace.cell + (2 * cellSign)];
+            const jumpedSpace = jumpedRow[startSpace.cell + (1 * cellSign)];
+            const jumpedAlready = jumpedSpace ? jumpedPieces.find(jp => jp.row === jumpedSpace.row && jp.cell === jumpedSpace.cell) : undefined;
+
+            if (cell && !jumpedAlready && jumpedSpace.piece.includes("R")) return true;
+
+            return false;
+        }
     }
 
     function updateGameState(newSpaceCoords:Coords, 
@@ -228,7 +262,7 @@ export default function Checkerboard ({
         return (spaceIsEmpty && directionIsValid);
     }
 
-    async function postMoveToBackend() {
+    async function requestAIMove() {
         const serializedBoard = JSON.stringify(gameState);
         const response = await FetchData({
             endpoint: "Checkers/GetMoveFromAI",
@@ -308,10 +342,17 @@ export default function Checkerboard ({
         if (move.coords.row === 0 && !piece.includes("K")) {
             piece = piece + "K";
         }
+
         updateGameState(move.coords, activeCell.coords, piece, "B", jumpedPieces); 
-        // clear coords
-        setActiveCell(defaultActiveCell)
-        setPlayerTurn(CHESTER);
+        setActiveCell(defaultActiveCell);
+
+        // Check for additional moves
+        const additionalJumpAvailable = CheckForAdditionalJumpChance(move.coords, piece, jumpedPieces);
+        console.log(additionalJumpAvailable);
+        if (!additionalJumpAvailable) {
+            setPlayerTurn(CHESTER);
+            requestAIMove();
+        }
     }
 
     // ----- Component Render ----- //
