@@ -23,6 +23,11 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
 
         var validMoves = await this.GetValidMoves(gameBoard, cancellationToken);
 
+        if (validMoves.Count == 0)
+        {
+            return new GetAIMoveResponse { EndOfGame = true };
+        }
+
         var chosenMove = await this.PostGameToAI(gameBoard, validMoves, cancellationToken);
 
         return this.ShapeResponse(gameBoard, chosenMove);

@@ -2,7 +2,7 @@ import styles from './Checkerboard.module.scss'
 import BoardRow from './BoardRow/BoardRow'
 import GameMenu from './GameMenu/GameMenu'
 import { GameState, GameStateCell, Coords, ActiveCellContext, Move, ActiveCell } from '../../../models/CheckersTypes'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import FetchData from '../../../hooks/FetchData'
 
 // ----- Local Types ----- //
@@ -73,15 +73,15 @@ function createTestGameState(): GameState {
         }
     }
 
-    board.rows[6][2].piece = "R";
-    board.rows[3][3].piece = "B";
+    board.rows[0][0].piece = "R";
+    board.rows[3][1].piece ="B";
 
     return board;
 }
 
 // ----- Local Constants ----- //
 
-//const newGameState: GameStateCell[][] = createFreshGameState();
+//const newGameState: GameState = createFreshGameState();
 const newGameState: GameState = createTestGameState();
 const defaultActiveCell: ActiveCell = {
     coords: {row: -1, cell: -1},
@@ -98,8 +98,14 @@ export default function Checkerboard ({
     const [gameState, setGameState] = useState<GameState>(newGameState);
     const [activeCell, setActiveCell] = useState<ActiveCell>(defaultActiveCell);
     const [playerTurn, setPlayerTurn] = useState<string>(PLAYER);
+    const [gameOver, setGameOver] = useState<boolean>(false);
 
     // ----- Use Effect Definitions ----- //
+    useEffect(() => {
+        if (gameState.whoMovedLast == PLAYER) {
+            requestAIMove();
+        }
+    }, [gameState])
 
     // ----- Component Methods ----- //
 
@@ -108,6 +114,7 @@ export default function Checkerboard ({
         setGameState(newGameState);
         setActiveCell(defaultActiveCell)
         setPlayerTurn(PLAYER);
+        setGameOver(false);
     }
 
     /** Checks for possibility of another jump move for the player */
@@ -271,6 +278,13 @@ export default function Checkerboard ({
             postData: { BoardState: serializedBoard }
         }); 
 
+        console.log(response);
+
+        if (response.endOfGame) {
+            setGameOver(true);
+            return;
+        }
+
         // TODO: tie this to an actual model
         // TODO: check for errors and handle gracefully
         const lastIndex = response.move.positions.length - 1;
@@ -297,7 +311,7 @@ export default function Checkerboard ({
             jumpedPieces.push(jumpedPiece);
         })
 
-        updateGameState(newSpace, oldSpace, piece, "R", jumpedPieces);
+        updateGameState(newSpace, oldSpace, piece, CHESTER, jumpedPieces);
         setPlayerTurn(PLAYER);
     }
 
@@ -344,14 +358,18 @@ export default function Checkerboard ({
             piece = piece + "K";
         }
 
-        updateGameState(move.coords, activeCell.coords, piece, "B", jumpedPieces); 
+        updateGameState(move.coords, activeCell.coords, piece, PLAYER, jumpedPieces); 
         setActiveCell(defaultActiveCell);
 
-        // Check for additional moves
-        const additionalJumpAvailable = CheckForAdditionalJumpChance(move.coords, piece, jumpedPieces);
+        // Check for additional moves if first move was a jump
+        let additionalJumpAvailable = false;
+
+        if (moveIsJump.isJump) {
+            additionalJumpAvailable = CheckForAdditionalJumpChance(move.coords, piece, jumpedPieces);
+        }
         if (!additionalJumpAvailable) {
             setPlayerTurn(CHESTER);
-            requestAIMove();
+            //requestAIMove();
         }
     }
 
@@ -361,6 +379,7 @@ export default function Checkerboard ({
             <div className={styles.MainWrap}>
                 <div className={styles.GameAreaWrap}>
                     <h1>Checkers with Chester</h1>
+                    <h2 className={!gameOver && styles.Hidden} >Game Over!</h2>
                     <GameMenu onQuit={quitGame} onRestart={restart}/>
                     <ActiveCellContext.Provider value={activeCell}>
                         <div className={styles.Board}>
