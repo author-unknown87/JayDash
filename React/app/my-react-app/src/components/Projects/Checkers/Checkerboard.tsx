@@ -67,19 +67,23 @@ function createTestGameState(): GameState {
     const board = createFreshGameState();
 
     // make adjustments
-    for (let row = 0; row <= 7; row++) {
-        for (let col = 0; col <= 7; col++) {
-            board.rows[row][col].piece = ""
-        }
-    }
+    // for (let row = 0; row <= 7; row++) {
+    //     for (let col = 0; col <= 7; col++) {
+    //         board.rows[row][col].piece = ""
+    //     }
+    // }
+
+    // board.rows[2][2].piece = "";
+    // board.rows[4][2].piece = "R";
+
 
     return board;
 }
 
 // ----- Local Constants ----- //
 
-const newGameState: GameState = createFreshGameState();
-//const newGameState: GameState = createTestGameState();
+//const newGameState: GameState = createFreshGameState();
+const newGameState: GameState = createTestGameState();
 const defaultActiveCell: ActiveCell = {
     coords: {row: -1, cell: -1},
     piece: ""
@@ -188,7 +192,7 @@ export default function Checkerboard ({
             const jumpedSpace = jumpedRow[startSpace.cell + (1 * cellSign)];
             const jumpedAlready = jumpedSpace ? jumpedPieces.find(jp => jp.row === jumpedSpace.row && jp.cell === jumpedSpace.cell) : undefined;
 
-            if (cell && !jumpedAlready && jumpedSpace.piece.includes("R")) return true;
+            if (cell && cell.piece === "" && !jumpedAlready && jumpedSpace.piece.includes("R")) return true;
 
             return false;
         }
@@ -340,7 +344,7 @@ export default function Checkerboard ({
             jumpedPieces.push(jumpedPiece);
         })
 
-        updateGameState(newSpace, oldSpace, piece, CHESTER, jumpedPieces);
+        updateGameState(newSpace, oldSpace, piece, CHESTER, false, jumpedPieces);
         setPlayerTurn(PLAYER);
     }
 
