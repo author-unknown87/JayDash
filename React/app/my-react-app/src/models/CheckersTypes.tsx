@@ -2,6 +2,7 @@ import React from 'react'
 
 export type GameState = {
     whoMovedLast: string,
+    moveIsFinished: boolean,
     rows: GameStateCell[][]
 }
 

@@ -73,16 +73,13 @@ function createTestGameState(): GameState {
         }
     }
 
-    board.rows[0][0].piece = "R";
-    board.rows[2][0].piece = "B";
-
     return board;
 }
 
 // ----- Local Constants ----- //
 
-//const newGameState: GameState = createFreshGameState();
-const newGameState: GameState = createTestGameState();
+const newGameState: GameState = createFreshGameState();
+//const newGameState: GameState = createTestGameState();
 const defaultActiveCell: ActiveCell = {
     coords: {row: -1, cell: -1},
     piece: ""
@@ -104,7 +101,7 @@ export default function Checkerboard ({
     useEffect(() => {
         switch(gameState.whoMovedLast) {
             case PLAYER: 
-                requestAIMove();
+                if (gameState.moveIsFinished) requestAIMove();
                 break;
             case CHESTER:
                 // Evaluate if player has any pieces / moves left
@@ -201,11 +198,13 @@ export default function Checkerboard ({
         oldSpaceCoords:Coords, 
         piece: string, 
         player: string,
+        playerDoneMoving: boolean,
         jumpedPieces?: Coords[]
     ) {
         setGameState((currentState) => {
             const updatedState = {
                 ...currentState,
+                moveIsFinished: playerDoneMoving,
                 rows: currentState.rows.map((row) => row.map(cell => ({...cell})))
             }
 
@@ -388,18 +387,18 @@ export default function Checkerboard ({
             piece = piece + "K";
         }
 
-        updateGameState(move.coords, activeCell.coords, piece, PLAYER, jumpedPieces); 
-        setActiveCell(defaultActiveCell);
-
         // Check for additional moves if first move was a jump
         let additionalJumpAvailable = false;
 
         if (moveIsJump.isJump) {
             additionalJumpAvailable = CheckForAdditionalJumpChance(move.coords, piece, jumpedPieces);
         }
+
+        updateGameState(move.coords, activeCell.coords, piece, PLAYER, !additionalJumpAvailable, jumpedPieces); 
+        setActiveCell(defaultActiveCell);
+
         if (!additionalJumpAvailable) {
             setPlayerTurn(CHESTER);
-            //requestAIMove();
         }
     }
 
