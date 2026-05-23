@@ -74,7 +74,7 @@ function createTestGameState(): GameState {
     }
 
     board.rows[0][0].piece = "R";
-    board.rows[3][1].piece ="B";
+    board.rows[2][0].piece = "B";
 
     return board;
 }
@@ -102,9 +102,17 @@ export default function Checkerboard ({
 
     // ----- Use Effect Definitions ----- //
     useEffect(() => {
-        if (gameState.whoMovedLast == PLAYER) {
-            requestAIMove();
+        switch(gameState.whoMovedLast) {
+            case PLAYER: 
+                requestAIMove();
+                break;
+            case CHESTER:
+                // Evaluate if player has any pieces / moves left
+                const playerHasMoves = CheckIfPlayerHasMoves();
+                if (!playerHasMoves) setGameOver(true);
+                break;
         }
+
     }, [gameState])
 
     // ----- Component Methods ----- //
@@ -115,6 +123,30 @@ export default function Checkerboard ({
         setActiveCell(defaultActiveCell)
         setPlayerTurn(PLAYER);
         setGameOver(false);
+    }
+
+    function CheckIfPlayerHasMoves(): boolean {
+        const playerPieces = playerHasPiecesOnBoard();
+        return playerPieces.length > 0;
+
+        function playerHasPiecesOnBoard(): Coords[] {
+            const playerPieces:Coords[] = [];
+
+            gameState.rows.map((row, rowNumber) => {
+                row.map((cell, cellNumber) => {
+                    if (cell.piece.includes("B")) {
+                        const coords:Coords = {
+                            row: rowNumber,
+                            cell: cellNumber
+                        };
+
+                        playerPieces.push(coords);
+                    }
+                })
+            })
+
+            return playerPieces;
+        }
     }
 
     /** Checks for possibility of another jump move for the player */
@@ -277,8 +309,6 @@ export default function Checkerboard ({
             action: "POST",
             postData: { BoardState: serializedBoard }
         }); 
-
-        console.log(response);
 
         if (response.endOfGame) {
             setGameOver(true);
