@@ -1,7 +1,7 @@
 import styles from './Checkerboard.module.scss'
 import BoardRow from './BoardRow/BoardRow'
 import GameMenu from './GameMenu/GameMenu'
-import { GameState, GameStateCell, Coords, ActiveCellContext, Move, ActiveCell } from '../../../models/CheckersTypes'
+import { GameState, GameStateCell, Coords, ActiveCellContext, Move, ActiveCell, PlayerMove } from '../../../models/CheckersTypes'
 import { useState, useEffect } from 'react'
 import FetchData from '../../../hooks/FetchData'
 
@@ -67,15 +67,17 @@ function createTestGameState(): GameState {
     const board = createFreshGameState();
 
     // make adjustments
-    // for (let row = 0; row <= 7; row++) {
-    //     for (let col = 0; col <= 7; col++) {
-    //         board.rows[row][col].piece = ""
-    //     }
-    // }
+    for (let row = 0; row <= 7; row++) {
+        for (let col = 0; col <= 7; col++) {
+            board.rows[row][col].piece = ""
+        }
+    }
 
-    // board.rows[2][2].piece = "";
-    // board.rows[4][2].piece = "R";
-
+    board.rows[2][2].piece = "";
+    board.rows[4][2].piece = "R";
+    board.rows[5][3].piece = "B";
+    board.rows[2][2].piece = "R";
+    board.rows[1][5].piece = "BK";
 
     return board;
 }
@@ -348,6 +350,51 @@ export default function Checkerboard ({
         setPlayerTurn(PLAYER);
     }
 
+    /** Finds all possible jump moves for the currently active piece */
+    function findAllJumps(): PlayerMove[] {
+        const jumpMoves: PlayerMove[] = [];
+
+        const playerPieceLocations = gameState.rows.flatMap(r => r)
+        .filter(c => c.piece.includes("B"))
+        .map(c => ({
+            row: c.row,
+            cell: c.cell,
+            piece: c.piece
+        }));
+
+        playerPieceLocations.forEach((p) => {
+            // check upper left
+            if (gameState.rows[p.row - 1][p.cell - 1].piece.includes("R") && 
+                    gameState.rows[p.row - 2][p.cell - 2].piece === "") {
+                jumpMoves.push({start: {row: p.row, cell: p.cell}, end: {row: p.row - 2, cell: p.cell - 2}})
+            }
+
+            // check upper right
+            if (gameState.rows[p.row - 1][p.cell + 1].piece.includes("R") && 
+                    gameState.rows[p.row - 2][p.cell + 2].piece === "") {
+                jumpMoves.push({start: {row: p.row, cell: p.cell}, end: {row: p.row - 2, cell: p.cell + 2}})
+            }
+
+            // Guard: not a king, skip remaining checks
+            if (!p.piece.includes("K")) return;
+
+            // check lower left
+            if (gameState.rows[p.row + 1][p.cell - 1].piece.includes("R") && 
+                    gameState.rows[p.row + 2][p.cell - 2].piece === "") {
+                jumpMoves.push({start: {row: p.row, cell: p.cell}, end: {row: p.row + 2, cell: p.cell - 2}})
+            }
+
+            // check lower right
+            if (gameState.rows[p.row + 1][p.cell + 1].piece.includes("R") && 
+                    gameState.rows[p.row + 2][p.cell + 2].piece === "") {
+                jumpMoves.push({start: {row: p.row, cell: p.cell}, end: {row: p.row + 2, cell: p.cell + 2}})
+            }
+
+        })
+
+        return jumpMoves;
+    }
+
     function handlePuckClick(move: Move) {
         // Guard clause, prevent multiple player moves
         if (playerTurn === CHESTER) return;
@@ -357,7 +404,7 @@ export default function Checkerboard ({
         const pieceAtLocation = gameState.rows[move.coords.row][move.coords.cell].piece;
 
         if (isFirstClick) {
-            if (pieceAtLocation === "B" || pieceAtLocation === "BK") {
+            if (pieceAtLocation.includes("B")) {
                 setActiveCell({coords: move.coords, piece: pieceAtLocation});
             }
             return;
@@ -374,6 +421,23 @@ export default function Checkerboard ({
         const moveIsJump = isKing ? determineIfMoveIsJumpForKing(move) : determineIfMoveIsJump(move);
         const moveIsValid = validateMove(move, moveIsJump.isJump);
 
+        // Check if player has a jump possible.
+        const possibleJumpMoves = findAllJumps();
+        if (possibleJumpMoves.length > 0) {
+            // jumps are possible, player has to choose one of these available jumps
+            const foundMove = possibleJumpMoves.filter(m => m.start.row == activeCell.coords.row && 
+                m.start.cell == activeCell.coords.cell &&
+                m.end.row == move.coords.row &&
+                m.end.cell == move.coords.cell
+            );
+
+            if (foundMove.length == 0) {
+                // TODO: this needs to be an error feedback
+                setActiveCell(defaultActiveCell);
+                return;
+            }
+        }
+
         const jumpedPieces: Coords[] = [];
         if (moveIsJump.isJump) {
             jumpedPieces.push(moveIsJump.jumpedPiece);
@@ -385,7 +449,7 @@ export default function Checkerboard ({
             return;
         }
 
-        // We can safely assume player only plays Black pucks at this time
+        // We can safely assume player only plays Black pucks
         let piece = activeCell.piece;
         if (move.coords.row === 0 && !piece.includes("K")) {
             piece = piece + "K";

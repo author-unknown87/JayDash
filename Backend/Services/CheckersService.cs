@@ -421,6 +421,4 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
     }
 
     #endregion
-
-
 }
