@@ -1,7 +1,7 @@
 import styles from './Checkerboard.module.scss'
 import BoardRow from './BoardRow/BoardRow'
 import GameMenu from './GameMenu/GameMenu'
-import { GameState, GameStateCell, Coords, ActiveCellContext, Move, ActiveCell, PlayerMove } from '../../../models/CheckersTypes'
+import { GameState, GameStateCell, Coords, GameSettingsContext, Move, ActiveCell, PlayerMove, GameSettings } from '../../../models/CheckersTypes'
 import { useState, useEffect } from 'react'
 import FetchData from '../../../hooks/FetchData'
 
@@ -14,6 +14,11 @@ interface CheckerboardProps {
 type MoveIsJumpResponse = {
     isJump: boolean,
     jumpedPiece?: Coords
+}
+
+type validateCoordinatesResponse = {
+    isValid: boolean,
+    Coordinates: Coords
 }
 
 // ----- Helper Methods ----- //
@@ -40,7 +45,8 @@ function determinePieceForDefaultState(row: number, cell: number): string {
 function createFreshGameState(): GameState {
     const gameBoard: GameState = {
         whoMovedLast: "",
-        rows: []
+        rows: [],
+        moveIsFinished: false
     }
 
     for (let rowIndex = 0; rowIndex <= 7; rowIndex++) {
@@ -73,25 +79,24 @@ function createTestGameState(): GameState {
         }
     }
 
-    board.rows[2][2].piece = "";
-    board.rows[4][2].piece = "R";
-    board.rows[5][3].piece = "B";
-    board.rows[2][2].piece = "R";
-    board.rows[1][5].piece = "BK";
-    board.rows[0][0].piece = "BK";
-    board.rows[6][6].piece = "RK";
-    board.rows[7][7].piece = "B";
+    board.rows[1][3].piece = "R";
+    board.rows[2][2].piece = "B";
+    board.rows[1][5].piece = "R";
 
     return board;
 }
 
 // ----- Local Constants ----- //
 
-//const newGameState: GameState = createFreshGameState();
-const newGameState: GameState = createTestGameState();
+const newGameState: GameState = createFreshGameState();
+//const newGameState: GameState = createTestGameState();
 const defaultActiveCell: ActiveCell = {
     coords: {row: -1, cell: -1},
     piece: ""
+}
+const defaultGameSettings:GameSettings = {
+    ActiveCell: defaultActiveCell,
+    Blocked: false
 }
 
 const PLAYER = "player";
@@ -102,7 +107,8 @@ export default function Checkerboard ({
 }: CheckerboardProps) {
     // ----- Use State Definitions ----- //
     const [gameState, setGameState] = useState<GameState>(newGameState);
-    const [activeCell, setActiveCell] = useState<ActiveCell>(defaultActiveCell);
+    // const [activeCell, setActiveCell] = useState<ActiveCell>(defaultActiveCell);
+    const [gameSettings, setGameSettings] = useState<GameSettings>(defaultGameSettings);
     const [playerTurn, setPlayerTurn] = useState<string>(PLAYER);
     const [gameOver, setGameOver] = useState<boolean>(false);
     const [requiredMove, setRequiredMove] = useState<PlayerMove>();
@@ -111,7 +117,13 @@ export default function Checkerboard ({
     useEffect(() => {
         switch(gameState.whoMovedLast) {
             case PLAYER: 
-                if (gameState.moveIsFinished) requestAIMove();
+                if (gameState.moveIsFinished) {
+                    setGameSettings({
+                        ...gameSettings,
+                        Blocked: true
+                    })
+                    requestAIMove();
+                }
                 break;
             case CHESTER:
                 // Evaluate if player has any pieces / moves left
@@ -127,7 +139,7 @@ export default function Checkerboard ({
     //** Clear game state to reset pieces */
     function restart() {
         setGameState(newGameState);
-        setActiveCell(defaultActiveCell)
+        setGameSettings(defaultGameSettings)
         setPlayerTurn(PLAYER);
         setGameOver(false);
         setRequiredMove(undefined)
@@ -192,12 +204,6 @@ export default function Checkerboard ({
         if (rightBackIsValid) return buildReturn(startSpace, rightBackIsValid);
 
         return buildReturn(startSpace);
-
-        /** Internal Types */
-        type validateCoordinatesResponse = {
-            isValid: boolean,
-            Coordinates: Coords
-        }
 
         /** Internal Functions */
 
@@ -279,18 +285,18 @@ export default function Checkerboard ({
     }
 
     function determineIfMoveIsJumpForKing(move: Move):MoveIsJumpResponse {
-        const startCell = activeCell.coords.cell;
-        const startRow = activeCell.coords.row;
-        const jumpIsUp = activeCell.coords.row - move.coords.row > 0;
+        const startCell = gameSettings.ActiveCell.coords.cell;
+        const startRow = gameSettings.ActiveCell.coords.row;
+        const jumpIsUp = gameSettings.ActiveCell.coords.row - move.coords.row > 0;
 
         // are they moving two spaces?
         if (Math.abs(move.coords.row - startRow) !== 2) return { isJump: false };
         if (Math.abs(move.coords.cell - startCell) !== 2) return { isJump: false };
 
         // is there a red piece in the way?
-        const isJumpRight = activeCell.coords.cell - move.coords.cell < 0;
+        const isJumpRight = gameSettings.ActiveCell.coords.cell - move.coords.cell < 0;
         const jumpedRow = jumpIsUp ? move.coords.row + 1 : move.coords.row - 1;
-        const jumpedCell = (isJumpRight) ? activeCell.coords.cell + 1 : activeCell.coords.cell - 1;
+        const jumpedCell = (isJumpRight) ? gameSettings.ActiveCell.coords.cell + 1 : gameSettings.ActiveCell.coords.cell - 1;
         const jumpedPiece = gameState.rows[jumpedRow][jumpedCell].piece;
 
         if (jumpedPiece !== "R" && jumpedPiece !== "RK") return { isJump: false };
@@ -299,17 +305,17 @@ export default function Checkerboard ({
     }
 
     function determineIfMoveIsJump(move: Move):MoveIsJumpResponse {
-        const startCell = activeCell.coords.cell;
-        const startRow = activeCell.coords.row;
+        const startCell = gameSettings.ActiveCell.coords.cell;
+        const startRow = gameSettings.ActiveCell.coords.row;
 
         // are they moving two spaces ahead?
         if (move.coords.row - startRow !== -2) return { isJump: false };
         if (Math.abs(move.coords.cell - startCell) !== 2) return { isJump: false };
 
         // is there a red piece in the way?
-        const isJumpRight = activeCell.coords.cell - move.coords.cell < 0;
+        const isJumpRight = gameSettings.ActiveCell.coords.cell - move.coords.cell < 0;
         const jumpedRow = move.coords.row + 1;
-        const jumpedCell = (isJumpRight) ? activeCell.coords.cell + 1 : activeCell.coords.cell - 1;
+        const jumpedCell = (isJumpRight) ? gameSettings.ActiveCell.coords.cell + 1 : gameSettings.ActiveCell.coords.cell - 1;
         const jumpedPiece = gameState.rows[jumpedRow][jumpedCell].piece;
         if (!jumpedPiece.includes("R")) return { isJump: false };
 
@@ -317,8 +323,8 @@ export default function Checkerboard ({
     }
 
     function validateDirection(move: Move, isJump: boolean):boolean {
-        const startRow = gameState.rows[activeCell.coords.row][activeCell.coords.cell].row;
-        const startCell = gameState.rows[activeCell.coords.row][activeCell.coords.cell].cell;
+        const startRow = gameState.rows[gameSettings.ActiveCell.coords.row][gameSettings.ActiveCell.coords.cell].row;
+        const startCell = gameState.rows[gameSettings.ActiveCell.coords.row][gameSettings.ActiveCell.coords.cell].cell;
         let isValid = false;
 
         isValid = move.coords.row === startRow - (isJump ? 2 : 1) &&
@@ -326,7 +332,7 @@ export default function Checkerboard ({
                                 move.coords.cell === startCell + (isJump ? 2 : 1)
                             );
 
-        if (activeCell.piece.includes("K") && !isValid) {
+        if (gameSettings.ActiveCell.piece.includes("K") && !isValid) {
             // King piece, may want to move backwards.  Check that as well
             isValid = move.coords.row === startRow + (isJump ? 2 : 1) &&
                             (move.coords.cell === startCell + (isJump ? 2 : 1) ||
@@ -385,6 +391,10 @@ export default function Checkerboard ({
 
         updateGameState(newSpace, oldSpace, piece, CHESTER, false, jumpedPieces);
         setPlayerTurn(PLAYER);
+        setGameSettings({
+            ...gameSettings,
+            Blocked: false
+        })
     }
 
     /** Safely returns either undefined or a GameStateCell if the coords are valid */
@@ -452,13 +462,16 @@ export default function Checkerboard ({
         // Guard clause, prevent multiple player moves
         if (playerTurn === CHESTER) return;
 
-        const isFirstClick = activeCell.coords.cell === -1;
-        const isKing = activeCell.piece.includes("K");
+        const isFirstClick = gameSettings.ActiveCell.coords.cell === -1;
+        const isKing = gameSettings.ActiveCell.piece.includes("K");
         const pieceAtLocation = gameState.rows[move.coords.row][move.coords.cell].piece;
 
         if (isFirstClick) {
             if (pieceAtLocation.includes("B")) {
-                setActiveCell({coords: move.coords, piece: pieceAtLocation});
+                setGameSettings({
+                    ...gameSettings,
+                    ActiveCell: {coords: move.coords, piece: pieceAtLocation}
+                })
             }
             return;
         }
@@ -466,20 +479,26 @@ export default function Checkerboard ({
         // handle 2nd click
         // Reset active cell if user is clicking another black puck
         if (pieceAtLocation.includes("B")) {
-            setActiveCell({coords: {row: move.coords.row, cell: move.coords.cell}, piece: pieceAtLocation});
+            setGameSettings({
+                ...gameSettings,
+                ActiveCell: {coords: {row: move.coords.row, cell: move.coords.cell}, piece: pieceAtLocation}
+            })
             return;
         }
 
         // If player has a required move, make sure this move matches that move
         if (requiredMove) {
-            if (activeCell.coords.cell !== requiredMove.start.cell ||
-                activeCell.coords.row !== requiredMove.start.row ||
+            if (gameSettings.ActiveCell.coords.cell !== requiredMove.start.cell ||
+                gameSettings.ActiveCell.coords.row !== requiredMove.start.row ||
                 move.coords.row !== requiredMove.end.row ||
                 move.coords.cell !== requiredMove.end.cell
             ) {
                 // Does not match, reset clicks
                 // TODO: again, need error feedback here
-                setActiveCell(defaultActiveCell);
+                setGameSettings({
+                    ...gameSettings,
+                    ActiveCell: defaultActiveCell
+                })
                 return;
             }
 
@@ -495,15 +514,18 @@ export default function Checkerboard ({
         const possibleJumpMoves = findAllJumps();
         if (possibleJumpMoves.length > 0) {
             // jumps are possible, player has to choose one of these available jumps
-            const foundMove = possibleJumpMoves.filter(m => m.start.row == activeCell.coords.row && 
-                m.start.cell == activeCell.coords.cell &&
+            const foundMove = possibleJumpMoves.filter(m => m.start.row == gameSettings.ActiveCell.coords.row && 
+                m.start.cell == gameSettings.ActiveCell.coords.cell &&
                 m.end.row == move.coords.row &&
                 m.end.cell == move.coords.cell
             );
 
             if (foundMove.length == 0) {
                 // TODO: this needs to be an error feedback
-                setActiveCell(defaultActiveCell);
+                setGameSettings({
+                    ...gameSettings,
+                    ActiveCell: defaultActiveCell
+                })
                 return;
             }
         }
@@ -515,12 +537,15 @@ export default function Checkerboard ({
 
         // TODO: Handle this gracefully, with feedback to the user
         if (!moveIsValid) {
-            setActiveCell(defaultActiveCell)
+                setGameSettings({
+                    ...gameSettings,
+                    ActiveCell: defaultActiveCell
+                })
             return;
         }
 
         // We can safely assume player only plays Black pucks
-        let piece = activeCell.piece;
+        let piece = gameSettings.ActiveCell.piece;
         if (move.coords.row === 0 && !piece.includes("K")) {
             piece = piece + "K";
         }
@@ -544,8 +569,11 @@ export default function Checkerboard ({
             }
         }
 
-        updateGameState(move.coords, activeCell.coords, piece, PLAYER, !additionalJumpAvailable, jumpedPieces); 
-        setActiveCell(defaultActiveCell);
+        updateGameState(move.coords, gameSettings.ActiveCell.coords, piece, PLAYER, !additionalJumpAvailable, jumpedPieces); 
+        setGameSettings({
+            ...gameSettings,
+            ActiveCell: defaultActiveCell
+        })
 
         if (!additionalJumpAvailable) {
             setPlayerTurn(CHESTER);
@@ -566,7 +594,7 @@ export default function Checkerboard ({
                     <h1>Checkers with Chester</h1>
                     <h2 className={!gameOver && styles.Hidden} >Game Over!</h2>
                     <GameMenu onQuit={quitGame} onRestart={restart}/>
-                    <ActiveCellContext.Provider value={activeCell}>
+                    <GameSettingsContext.Provider value={gameSettings}>
                         <div className={styles.Board}>
                             {
                                 gameState.rows.map((row, idx) => {
@@ -579,8 +607,8 @@ export default function Checkerboard ({
                                     )
                                 })
                             }
-                            </div>
-                    </ActiveCellContext.Provider>
+                        </div>
+                    </GameSettingsContext.Provider>
                 </div>
                 <div className={styles.SecondColumn}>
                     <div className={styles.MoveTracker}>

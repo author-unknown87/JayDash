@@ -12,7 +12,7 @@ public class CheckersController(ICheckersService _checkersService) : ControllerB
     {
         var response = await _checkersService.GetMoveFromAI(request.BoardState, cancellationToken);
         // two second pause to simulate AI processing
-        Thread.Sleep(1 * 500);
+        Thread.Sleep(2000);
         return (response != null) ? Ok(response) : Ok("System Error");
     }
 }

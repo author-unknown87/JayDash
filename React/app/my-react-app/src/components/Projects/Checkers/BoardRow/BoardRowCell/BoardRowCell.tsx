@@ -1,6 +1,6 @@
 import styles from './BoardRowCell.module.scss'
 import { useContext } from 'react'
-import { ActiveCellContext } from '../../../../../models/CheckersTypes'
+import { GameSettingsContext } from '../../../../../models/CheckersTypes'
 import { Move } from '../../../../../models/CheckersTypes'
 import { Crown } from 'lucide-react'
 
@@ -25,12 +25,12 @@ export default function BoardRowCell({
     // ----- Component Variables ----- //
     const isRed = piece?.includes("R");
     const isKing = piece?.includes("K");
-    const activeCell = useContext(ActiveCellContext);
+    const gameSettings = useContext(GameSettingsContext);
 
     // ----- Component Methods ----- //
     function determineColoring(): string {
         // check if coords for active cell match current cell
-        if (activeCell.coords.row === row && activeCell.coords.cell === cell) {
+        if (gameSettings.ActiveCell.coords.row === row && gameSettings.ActiveCell.coords.cell === cell) {
             return styles.Highlighted;
         }
 
@@ -53,13 +53,16 @@ export default function BoardRowCell({
     // ----- Component Return ----- //
     return (
         <>
-            <div className={`${styles.Cell} ${determineColoring()}`} onClick={handleCellClick}>
-                {hasPuck && (
-                    <>
-                        <div className={`${styles.Puck} ${piece && isRed ? styles.RedPiece : styles.BlackPiece}`} />
-                        {isKing && <Crown className={styles.KingMark}/>}
-                    </>
-                )}
+            <div className={styles.CellContainer}>
+                <div className={`${styles.Cell} ${determineColoring()}`} onClick={handleCellClick}>
+                    {hasPuck && (
+                        <>
+                            <div className={`${styles.Puck} ${piece && isRed ? styles.RedPiece : styles.BlackPiece}`} />
+                            {isKing && <Crown className={styles.KingMark}/>}
+                        </>
+                    )}
+                </div>
+                {gameSettings.Blocked && <div className={styles.CellBlock}></div>}
             </div>
         </>
     )

@@ -32,6 +32,19 @@ export type ActiveCell = {
     piece: string
 }
 
+export type GameSettings = {
+    ActiveCell: ActiveCell,
+    Blocked: boolean
+}
+
+export const GameSettingsContext = React.createContext<GameSettings>({
+    ActiveCell: {
+        coords: {row: -1, cell: -1},
+        piece: ""
+    },
+    Blocked: false
+})
+
 export const ActiveCellContext = React.createContext<ActiveCell>({
     coords: {
         row: -1,
@@ -39,3 +52,4 @@ export const ActiveCellContext = React.createContext<ActiveCell>({
     },
     piece: ""
 })
+

@@ -404,7 +404,7 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
     #endregion
 
     #region Internal Models
-
+    
     internal enum Direction
     {
         Left,
