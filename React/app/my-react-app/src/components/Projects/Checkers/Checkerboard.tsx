@@ -78,6 +78,9 @@ function createTestGameState(): GameState {
     board.rows[5][3].piece = "B";
     board.rows[2][2].piece = "R";
     board.rows[1][5].piece = "BK";
+    board.rows[0][0].piece = "BK";
+    board.rows[6][6].piece = "RK";
+    board.rows[7][7].piece = "B";
 
     return board;
 }
@@ -102,6 +105,7 @@ export default function Checkerboard ({
     const [activeCell, setActiveCell] = useState<ActiveCell>(defaultActiveCell);
     const [playerTurn, setPlayerTurn] = useState<string>(PLAYER);
     const [gameOver, setGameOver] = useState<boolean>(false);
+    const [requiredMove, setRequiredMove] = useState<PlayerMove>();
 
     // ----- Use Effect Definitions ----- //
     useEffect(() => {
@@ -126,6 +130,7 @@ export default function Checkerboard ({
         setActiveCell(defaultActiveCell)
         setPlayerTurn(PLAYER);
         setGameOver(false);
+        setRequiredMove(undefined)
     }
 
     function CheckIfPlayerHasMoves(): boolean {
@@ -153,50 +158,82 @@ export default function Checkerboard ({
     }
 
     /** Checks for possibility of another jump move for the player */
-    function CheckForAdditionalJumpChance(startSpace:Coords, piece:string, jumpedPieces: Coords[]):boolean {
+    function CheckForAdditionalJumpChance(startSpace:Coords, piece:string, jumpedPieces: Coords[]):CheckForAdditionalJumpChanceResponse {
         const isKing = piece.includes("K");
         const forwardRow = gameState.rows[startSpace.row - 2];
         const jumpedForwardRow = gameState.rows[startSpace.row - 1];
 
-        if (!forwardRow && !isKing) return false;
+        if (!forwardRow && !isKing) return buildReturn(startSpace);
 
         if (forwardRow) {
             // Check forward jump left
             var leftForwardIsValid = validateCoordinates(forwardRow, jumpedForwardRow, startSpace, true);
-            if (leftForwardIsValid) return true;
+            if (leftForwardIsValid.isValid) {
+                return buildReturn(startSpace, leftForwardIsValid);
+            }
 
             // Check forward jump right
             var rightForwardIsValid = validateCoordinates(forwardRow, jumpedForwardRow, startSpace, false);
-            if (rightForwardIsValid) return true;
+            if (rightForwardIsValid) return buildReturn(startSpace, rightForwardIsValid);
         }
 
-        if (!isKing) return false;
+        if (!isKing) return buildReturn(startSpace);
 
         const backwardsRow = gameState.rows[startSpace.row + 2];
         const jumpedBackwardsRow = gameState.rows[startSpace.row + 1];
-        if (!backwardsRow) return false;
+        if (!backwardsRow) return buildReturn(startSpace);
 
         // IF KING check backward jump left
         var leftBackIsValid = validateCoordinates(backwardsRow, jumpedBackwardsRow, startSpace, true);
-        if (leftBackIsValid) return true;
+        if (leftBackIsValid) return buildReturn(startSpace, leftBackIsValid);
 
         // IF KING check backward jump right
         var rightBackIsValid = validateCoordinates(backwardsRow, jumpedBackwardsRow, startSpace, false);
-        if (rightBackIsValid) return true;
+        if (rightBackIsValid) return buildReturn(startSpace, rightBackIsValid);
 
-        return false;
+        return buildReturn(startSpace);
 
-        /** Internal function only */
-        function validateCoordinates(targetRow:GameStateCell[], jumpedRow:GameStateCell[], startSpace:Coords, isLeft:Boolean) {
+        /** Internal Types */
+        type validateCoordinatesResponse = {
+            isValid: boolean,
+            Coordinates: Coords
+        }
+
+        /** Internal Functions */
+
+        function buildReturn(startSpace: Coords, validationResponse?: validateCoordinatesResponse):CheckForAdditionalJumpChanceResponse {
+            const playerMove:PlayerMove = {
+                start: startSpace,
+                end: {
+                    row: validationResponse?.Coordinates.row ?? -1,
+                    cell: validationResponse?.Coordinates.cell ?? -1
+                }
+            };
+
+            return {
+                Exists: validationResponse?.isValid ?? false,
+                PlayerMove: playerMove
+            }
+        }
+
+        function validateCoordinates(targetRow:GameStateCell[], jumpedRow:GameStateCell[], startSpace:Coords, isLeft:Boolean):validateCoordinatesResponse {
             const cellSign = isLeft ? -1 : 1;
 
             const cell = targetRow[startSpace.cell + (2 * cellSign)];
             const jumpedSpace = jumpedRow[startSpace.cell + (1 * cellSign)];
             const jumpedAlready = jumpedSpace ? jumpedPieces.find(jp => jp.row === jumpedSpace.row && jp.cell === jumpedSpace.cell) : undefined;
 
-            if (cell && cell.piece === "" && !jumpedAlready && jumpedSpace.piece.includes("R")) return true;
+            if (cell && cell.piece === "" && !jumpedAlready && jumpedSpace.piece.includes("R")) {
+                return {
+                    isValid: true,
+                    Coordinates: {
+                        row: cell.row,
+                        cell: cell.cell
+                    }
+                }
+            };
 
-            return false;
+            return {isValid: false, Coordinates: {row: -1, cell: -1}};
         }
     }
 
@@ -350,6 +387,16 @@ export default function Checkerboard ({
         setPlayerTurn(PLAYER);
     }
 
+    /** Safely returns either undefined or a GameStateCell if the coords are valid */
+    function getStateCell(row:number, cell:number):GameStateCell | undefined{
+        const selectedRow = gameState.rows[row];
+        if (!selectedRow) return undefined;
+
+        const selectedCell = selectedRow[cell];
+        
+        return (selectedCell) ? selectedCell : undefined;
+    }
+
     /** Finds all possible jump moves for the currently active piece */
     function findAllJumps(): PlayerMove[] {
         const jumpMoves: PlayerMove[] = [];
@@ -363,15 +410,20 @@ export default function Checkerboard ({
         }));
 
         playerPieceLocations.forEach((p) => {
+            let jumpedSpace: GameStateCell | undefined;
+            let jumpedToSpace: GameStateCell | undefined;
+
             // check upper left
-            if (gameState.rows[p.row - 1][p.cell - 1].piece.includes("R") && 
-                    gameState.rows[p.row - 2][p.cell - 2].piece === "") {
+            jumpedSpace = getStateCell(p.row - 1, p.cell - 1);
+            jumpedToSpace = getStateCell(p.row - 2, p.cell - 2)
+            if (jumpedSpace && jumpedToSpace && jumpedSpace.piece.includes("R") && jumpedToSpace.piece === "") {
                 jumpMoves.push({start: {row: p.row, cell: p.cell}, end: {row: p.row - 2, cell: p.cell - 2}})
             }
 
             // check upper right
-            if (gameState.rows[p.row - 1][p.cell + 1].piece.includes("R") && 
-                    gameState.rows[p.row - 2][p.cell + 2].piece === "") {
+            jumpedSpace = getStateCell(p.row - 1, p.cell + 1);
+            jumpedToSpace = getStateCell(p.row - 2, p.cell + 2);
+            if (jumpedSpace && jumpedToSpace && jumpedSpace.piece.includes("R") && jumpedToSpace.piece === "") {
                 jumpMoves.push({start: {row: p.row, cell: p.cell}, end: {row: p.row - 2, cell: p.cell + 2}})
             }
 
@@ -379,17 +431,18 @@ export default function Checkerboard ({
             if (!p.piece.includes("K")) return;
 
             // check lower left
-            if (gameState.rows[p.row + 1][p.cell - 1].piece.includes("R") && 
-                    gameState.rows[p.row + 2][p.cell - 2].piece === "") {
+            jumpedSpace = getStateCell(p.row + 1, p.cell - 1);
+            jumpedToSpace = getStateCell(p.row + 2, p.cell - 2);
+            if (jumpedSpace && jumpedToSpace && jumpedSpace.piece.includes("R") && jumpedToSpace.piece === "") {
                 jumpMoves.push({start: {row: p.row, cell: p.cell}, end: {row: p.row + 2, cell: p.cell - 2}})
             }
 
             // check lower right
-            if (gameState.rows[p.row + 1][p.cell + 1].piece.includes("R") && 
-                    gameState.rows[p.row + 2][p.cell + 2].piece === "") {
+            jumpedSpace = getStateCell(p.row + 1, p.cell + 1);
+            jumpedToSpace = getStateCell(p.row + 2, p.cell + 2);
+            if (jumpedSpace && jumpedToSpace && jumpedSpace.piece.includes("R") && jumpedToSpace.piece === "") {
                 jumpMoves.push({start: {row: p.row, cell: p.cell}, end: {row: p.row + 2, cell: p.cell + 2}})
             }
-
         })
 
         return jumpMoves;
@@ -415,6 +468,23 @@ export default function Checkerboard ({
         if (pieceAtLocation.includes("B")) {
             setActiveCell({coords: {row: move.coords.row, cell: move.coords.cell}, piece: pieceAtLocation});
             return;
+        }
+
+        // If player has a required move, make sure this move matches that move
+        if (requiredMove) {
+            if (activeCell.coords.cell !== requiredMove.start.cell ||
+                activeCell.coords.row !== requiredMove.start.row ||
+                move.coords.row !== requiredMove.end.row ||
+                move.coords.cell !== requiredMove.end.cell
+            ) {
+                // Does not match, reset clicks
+                // TODO: again, need error feedback here
+                setActiveCell(defaultActiveCell);
+                return;
+            }
+
+            // matches the required move, we can reset state for it
+            setRequiredMove(undefined);
         }
 
         // validate move
@@ -459,7 +529,19 @@ export default function Checkerboard ({
         let additionalJumpAvailable = false;
 
         if (moveIsJump.isJump) {
-            additionalJumpAvailable = CheckForAdditionalJumpChance(move.coords, piece, jumpedPieces);
+            const additionalJumpCheckResponse = CheckForAdditionalJumpChance(move.coords, piece, jumpedPieces);
+            additionalJumpAvailable = additionalJumpCheckResponse.Exists;
+
+            // Set required move
+            if (additionalJumpCheckResponse.Exists) {
+                setRequiredMove({
+                    start: move.coords,
+                    end: {
+                        row: additionalJumpCheckResponse.PlayerMove?.end.row,
+                        cell: additionalJumpCheckResponse.PlayerMove?.end.cell
+                    }
+                })
+            }
         }
 
         updateGameState(move.coords, activeCell.coords, piece, PLAYER, !additionalJumpAvailable, jumpedPieces); 
@@ -468,6 +550,12 @@ export default function Checkerboard ({
         if (!additionalJumpAvailable) {
             setPlayerTurn(CHESTER);
         }
+    }
+
+    // ----- Local Types ------ //
+    type CheckForAdditionalJumpChanceResponse = {
+        Exists: boolean,
+        PlayerMove: PlayerMove
     }
 
     // ----- Component Render ----- //
