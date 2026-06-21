@@ -79,9 +79,9 @@ function createTestGameState(): GameState {
         }
     }
 
-    board.rows[1][3].piece = "R";
-    board.rows[2][2].piece = "B";
-    board.rows[1][5].piece = "R";
+    board.rows[1][3].piece = "R"
+    board.rows[3][3].piece = "R"
+    board.rows[0][2].piece = "BK";
 
     return board;
 }
@@ -107,7 +107,6 @@ export default function Checkerboard ({
 }: CheckerboardProps) {
     // ----- Use State Definitions ----- //
     const [gameState, setGameState] = useState<GameState>(newGameState);
-    // const [activeCell, setActiveCell] = useState<ActiveCell>(defaultActiveCell);
     const [gameSettings, setGameSettings] = useState<GameSettings>(defaultGameSettings);
     const [playerTurn, setPlayerTurn] = useState<string>(PLAYER);
     const [gameOver, setGameOver] = useState<boolean>(false);
@@ -169,11 +168,18 @@ export default function Checkerboard ({
         }
     }
 
-    /** Checks for possibility of another jump move for the player */
-    function CheckForAdditionalJumpChance(startSpace:Coords, piece:string, jumpedPieces: Coords[]):CheckForAdditionalJumpChanceResponse {
+    /** Checks for possibility of another jump move for the player
+     *  Now accepts an optional simulated board (rows) so callers can verify
+     *  additional jumps against the board state that would exist after a jump
+     *  is applied. This avoids relying on setState timing and fixes king multi-jumps.
+     */
+    function CheckForAdditionalJumpChance(startSpace:Coords, piece:string, jumpedPieces: Coords[], board?: GameStateCell[][]):CheckForAdditionalJumpChanceResponse {
+        // prefer the provided simulated board, otherwise use the live gameState
+        const rows = board ?? gameState.rows;
+
         const isKing = piece.includes("K");
-        const forwardRow = gameState.rows[startSpace.row - 2];
-        const jumpedForwardRow = gameState.rows[startSpace.row - 1];
+        const forwardRow = rows[startSpace.row - 2];
+        const jumpedForwardRow = rows[startSpace.row - 1];
 
         if (!forwardRow && !isKing) return buildReturn(startSpace);
 
@@ -186,22 +192,22 @@ export default function Checkerboard ({
 
             // Check forward jump right
             var rightForwardIsValid = validateCoordinates(forwardRow, jumpedForwardRow, startSpace, false);
-            if (rightForwardIsValid) return buildReturn(startSpace, rightForwardIsValid);
+            if (rightForwardIsValid.isValid) return buildReturn(startSpace, rightForwardIsValid);
         }
 
         if (!isKing) return buildReturn(startSpace);
 
-        const backwardsRow = gameState.rows[startSpace.row + 2];
-        const jumpedBackwardsRow = gameState.rows[startSpace.row + 1];
+        const backwardsRow = rows[startSpace.row + 2];
+        const jumpedBackwardsRow = rows[startSpace.row + 1];
         if (!backwardsRow) return buildReturn(startSpace);
 
         // IF KING check backward jump left
         var leftBackIsValid = validateCoordinates(backwardsRow, jumpedBackwardsRow, startSpace, true);
-        if (leftBackIsValid) return buildReturn(startSpace, leftBackIsValid);
+        if (leftBackIsValid.isValid) return buildReturn(startSpace, leftBackIsValid);
 
         // IF KING check backward jump right
         var rightBackIsValid = validateCoordinates(backwardsRow, jumpedBackwardsRow, startSpace, false);
-        if (rightBackIsValid) return buildReturn(startSpace, rightBackIsValid);
+        if (rightBackIsValid.isValid) return buildReturn(startSpace, rightBackIsValid);
 
         return buildReturn(startSpace);
 
@@ -222,14 +228,19 @@ export default function Checkerboard ({
             }
         }
 
-        function validateCoordinates(targetRow:GameStateCell[], jumpedRow:GameStateCell[], startSpace:Coords, isLeft:Boolean):validateCoordinatesResponse {
-            const cellSign = isLeft ? -1 : 1;
+        function validateCoordinates(targetRow:GameStateCell[] | undefined, jumpedRow:GameStateCell[] | undefined, startSpace:Coords, isLeft:Boolean):validateCoordinatesResponse {
+            // guard missing rows
+            if (!targetRow || !jumpedRow) return {isValid: false, Coordinates: {row: -1, cell: -1}};
 
-            const cell = targetRow[startSpace.cell + (2 * cellSign)];
-            const jumpedSpace = jumpedRow[startSpace.cell + (1 * cellSign)];
+            const cellSign = isLeft ? -1 : 1;
+            const targetIndex = startSpace.cell + (2 * cellSign);
+            const jumpedIndex = startSpace.cell + (1 * cellSign);
+
+            const cell = targetRow[targetIndex];
+            const jumpedSpace = jumpedRow[jumpedIndex];
             const jumpedAlready = jumpedSpace ? jumpedPieces.find(jp => jp.row === jumpedSpace.row && jp.cell === jumpedSpace.cell) : undefined;
 
-            if (cell && cell.piece === "" && !jumpedAlready && jumpedSpace.piece.includes("R")) {
+            if (cell && cell.piece === "" && !jumpedAlready && jumpedSpace && jumpedSpace.piece.includes("R")) {
                 return {
                     isValid: true,
                     Coordinates: {
@@ -554,10 +565,29 @@ export default function Checkerboard ({
         let additionalJumpAvailable = false;
 
         if (moveIsJump.isJump) {
-            const additionalJumpCheckResponse = CheckForAdditionalJumpChance(move.coords, piece, jumpedPieces);
+            // Simulate board state after this jump so we can correctly detect additional jumps
+            const simulatedRows: GameStateCell[][] = gameState.rows.map(r => r.map(c => ({...c})));
+
+            const originalStart = gameSettings.ActiveCell.coords;
+            // clear the original start position on the simulated board
+            if (originalStart.row >= 0 && originalStart.cell >= 0) {
+                simulatedRows[originalStart.row][originalStart.cell].piece = "";
+            }
+
+            // place moving piece at landing spot
+            simulatedRows[move.coords.row][move.coords.cell].piece = piece;
+
+            // remove any jumped pieces from the simulated board
+            if (jumpedPieces && jumpedPieces.length > 0) {
+                jumpedPieces.forEach(jp => {
+                    simulatedRows[jp.row][jp.cell].piece = "";
+                })
+            }
+
+            const additionalJumpCheckResponse = CheckForAdditionalJumpChance(move.coords, piece, jumpedPieces, simulatedRows);
             additionalJumpAvailable = additionalJumpCheckResponse.Exists;
 
-            // Set required move
+            // Set required move and keep the active cell if another jump exists
             if (additionalJumpCheckResponse.Exists) {
                 setRequiredMove({
                     start: move.coords,
@@ -569,11 +599,21 @@ export default function Checkerboard ({
             }
         }
 
-        updateGameState(move.coords, gameSettings.ActiveCell.coords, piece, PLAYER, !additionalJumpAvailable, jumpedPieces); 
-        setGameSettings({
-            ...gameSettings,
-            ActiveCell: defaultActiveCell
-        })
+        // Update the game state with this move. If another jump is available, mark moveIsFinished accordingly.
+        updateGameState(move.coords, gameSettings.ActiveCell.coords, piece, PLAYER, !additionalJumpAvailable, jumpedPieces);
+
+        // If additional jumps are available, keep the active cell on the landed piece so the player can continue.
+        if (additionalJumpAvailable) {
+            setGameSettings({
+                ...gameSettings,
+                ActiveCell: { coords: move.coords, piece }
+            })
+        } else {
+            setGameSettings({
+                ...gameSettings,
+                ActiveCell: defaultActiveCell
+            })
+        }
 
         if (!additionalJumpAvailable) {
             setPlayerTurn(CHESTER);
@@ -607,19 +647,17 @@ export default function Checkerboard ({
                                     )
                                 })
                             }
+                            <div className={styles.ActiveTurn}>Active Turn</div>
+                            <div className={styles.nameplateGroup}>
+                                <div className={`${styles.nameplate} ${playerTurn === PLAYER ? styles.nameplateActive : styles.nameplateInactive}`}>
+                                    Player
+                                </div>
+                                <div className={`${styles.nameplate} ${playerTurn === CHESTER ? styles.nameplateActive : styles.nameplateInactive}`}>
+                                    Chester
+                                </div>
+                            </div>
                         </div>
                     </GameSettingsContext.Provider>
-                </div>
-                <div className={styles.SecondColumn}>
-                    <div className={styles.MoveTracker}>
-                        <div className={`${styles.MoveCue} ${playerTurn === PLAYER && styles.ActiveCue}`}>Your Move</div>
-                        <div className={`${styles.MoveCue} ${playerTurn === CHESTER && styles.ActiveCue}`}>Chester's Move</div>
-                    </div>
-                    <div className={styles.ChatWindow}>
-                        <ul>
-                            <li>I'm afraid I can't do that, Dave</li>
-                        </ul>
-                    </div>
                 </div>
             </div>
         </>
