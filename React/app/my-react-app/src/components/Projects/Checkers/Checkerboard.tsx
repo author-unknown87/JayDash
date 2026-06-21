@@ -120,10 +120,10 @@ export default function Checkerboard ({
         switch(gameState.whoMovedLast) {
             case PLAYER: 
                 if (gameState.moveIsFinished) {
-                    setGameSettings({
-                        ...gameSettings,
+                    setGameSettings(gs => ({
+                        ...gs,
                         Blocked: true
-                    })
+                    }))
                     requestAIMove();
                 }
                 break;
@@ -159,7 +159,7 @@ export default function Checkerboard ({
     //** Clear game state to reset pieces */
     function restart() {
         setGameState(newGameState);
-        setGameSettings(defaultGameSettings)
+                setGameSettings(defaultGameSettings)
         setPlayerTurn(PLAYER);
         setGameOver(false);
         setRequiredMove(undefined)
@@ -311,6 +311,100 @@ export default function Checkerboard ({
         })
     }
 
+    // Helper: wait for transitionend or timeout
+    function waitForTransitionEnd(el: HTMLElement | null, timeout = 400): Promise<void> {
+        return new Promise((resolve) => {
+            if (!el) return resolve();
+            let resolved = false;
+            const onEnd = (e?: TransitionEvent) => {
+                // accept transform or opacity transitions
+                if (e && e.propertyName && e.propertyName !== 'transform' && e.propertyName !== 'opacity') return;
+                if (resolved) return;
+                resolved = true;
+                el.removeEventListener('transitionend', onEnd);
+                resolve();
+            };
+            el.addEventListener('transitionend', onEnd);
+            setTimeout(() => { if (!resolved) { resolved = true; el.removeEventListener('transitionend', onEnd); resolve(); } }, timeout);
+        });
+    }
+
+    // Fade out captured pieces (keep them in DOM until we update state)
+    async function fadeCapturedPieces(jumpedPieces?: Coords[]) {
+        if (!jumpedPieces || jumpedPieces.length === 0) return;
+        const promises: Promise<void>[] = [];
+        jumpedPieces.forEach(jp => {
+            const sel = `[data-puck-row="${jp.row}"][data-puck-cell="${jp.cell}"]`;
+            const el = document.querySelector(sel) as HTMLElement | null;
+            if (el) {
+                el.classList.add(styles.CapturedFade);
+                promises.push(waitForTransitionEnd(el, 300));
+            }
+        });
+
+        await Promise.all(promises);
+    }
+
+    // Perform FLIP animation for a move and handle fading captured pieces first
+    async function performAnimatedMove(newSpaceCoords: Coords, oldSpaceCoords: Coords, pieceStr: string, playerStr: string, playerDoneMoving: boolean, jumpedPieces?: Coords[]) {
+        // 1) Fade captured pieces visually (if any)
+        if (jumpedPieces && jumpedPieces.length > 0) {
+            await fadeCapturedPieces(jumpedPieces);
+        }
+
+        // 2) Capture source rect BEFORE we update the state
+        const sourceSel = `[data-puck-row="${oldSpaceCoords.row}"][data-puck-cell="${oldSpaceCoords.cell}"]`;
+        const sourceEl = document.querySelector(sourceSel) as HTMLElement | null;
+        const sourceRect = sourceEl ? sourceEl.getBoundingClientRect() : null;
+
+        // 3) Update the game state (this will remove captured pieces and render piece at destination)
+        updateGameState(newSpaceCoords, oldSpaceCoords, pieceStr, playerStr, playerDoneMoving, jumpedPieces);
+
+        // 4) If we captured a source rect, run FLIP to animate destination puck from source position
+        if (sourceRect) {
+            await new Promise<void>((resolve) => {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        const destSel = `[data-puck-row="${newSpaceCoords.row}"][data-puck-cell="${newSpaceCoords.cell}"]`;
+                        const destEl = document.querySelector(destSel) as HTMLElement | null;
+                        if (!destEl) return resolve();
+
+                        const destRect = destEl.getBoundingClientRect();
+                        const deltaX = sourceRect.left - destRect.left;
+                        const deltaY = sourceRect.top - destRect.top;
+
+                        destEl.style.transition = 'none';
+                        destEl.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+                        // force reflow
+                        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+                        destEl.offsetHeight;
+
+                        destEl.style.transition = 'transform 200ms cubic-bezier(.2,.9,.2,1)';
+                        destEl.style.transform = 'translate(0, 0)';
+
+                        const onEnd = (ev: TransitionEvent) => {
+                            if (ev.propertyName !== 'transform') return;
+                            destEl.style.transition = '';
+                            destEl.style.transform = '';
+                            destEl.removeEventListener('transitionend', onEnd);
+                            resolve();
+                        };
+                        destEl.addEventListener('transitionend', onEnd);
+
+                        // fallback cleanup
+                        setTimeout(() => {
+                            if (destEl) {
+                                destEl.style.transition = '';
+                                destEl.style.transform = '';
+                            }
+                            resolve();
+                        }, 320);
+                    });
+                });
+            });
+        }
+    }
+
     function targetSpaceIsEmpty(move: Move):boolean {
         const pieceAtCell = gameState.rows[move.coords.row][move.coords.cell].piece;
         return pieceAtCell === "";
@@ -421,12 +515,12 @@ export default function Checkerboard ({
             jumpedPieces.push(jumpedPiece);
         })
 
-        updateGameState(newSpace, oldSpace, piece, CHESTER, false, jumpedPieces);
+        await performAnimatedMove(newSpace, oldSpace, piece, CHESTER, false, jumpedPieces);
         setPlayerTurn(PLAYER);
-        setGameSettings({
-            ...gameSettings,
+        setGameSettings(gs => ({
+            ...gs,
             Blocked: false
-        })
+        }))
     }
 
     /** Safely returns either undefined or a GameStateCell if the coords are valid */
@@ -490,7 +584,7 @@ export default function Checkerboard ({
         return jumpMoves;
     }
 
-    function handlePuckClick(move: Move) {
+    async function handlePuckClick(move: Move) {
         // Guard clause, prevent multiple player moves
         if (playerTurn === CHESTER) return;
 
@@ -500,10 +594,10 @@ export default function Checkerboard ({
 
         if (isFirstClick) {
             if (pieceAtLocation.includes("B")) {
-                setGameSettings({
-                    ...gameSettings,
+                setGameSettings(gs => ({
+                    ...gs,
                     ActiveCell: {coords: move.coords, piece: pieceAtLocation}
-                })
+                }))
             }
             return;
         }
@@ -511,10 +605,10 @@ export default function Checkerboard ({
         // handle 2nd click
         // Reset active cell if user is clicking another black puck
         if (pieceAtLocation.includes("B")) {
-            setGameSettings({
-                ...gameSettings,
+            setGameSettings(gs => ({
+                ...gs,
                 ActiveCell: {coords: {row: move.coords.row, cell: move.coords.cell}, piece: pieceAtLocation}
-            })
+            }))
             return;
         }
 
@@ -527,10 +621,10 @@ export default function Checkerboard ({
             ) {
                 // Does not match, reset clicks
                 // TODO: again, need error feedback here
-                setGameSettings({
-                    ...gameSettings,
+                setGameSettings(gs => ({
+                    ...gs,
                     ActiveCell: defaultActiveCell
-                })
+                }))
                 return;
             }
 
@@ -554,10 +648,10 @@ export default function Checkerboard ({
 
             if (foundMove.length == 0) {
                 // TODO: this needs to be an error feedback
-                setGameSettings({
-                    ...gameSettings,
+                setGameSettings(gs => ({
+                    ...gs,
                     ActiveCell: defaultActiveCell
-                })
+                }))
                 return;
             }
         }
@@ -569,10 +663,10 @@ export default function Checkerboard ({
 
         // TODO: Handle this gracefully, with feedback to the user
         if (!moveIsValid) {
-                setGameSettings({
-                    ...gameSettings,
+                setGameSettings(gs => ({
+                    ...gs,
                     ActiveCell: defaultActiveCell
-                })
+                }))
             return;
         }
 
@@ -620,20 +714,20 @@ export default function Checkerboard ({
             }
         }
 
-        // Update the game state with this move. If another jump is available, mark moveIsFinished accordingly.
-        updateGameState(move.coords, gameSettings.ActiveCell.coords, piece, PLAYER, !additionalJumpAvailable, jumpedPieces);
+        // Update the game state with this move and animate it. If another jump is available, mark moveIsFinished accordingly.
+        await performAnimatedMove(move.coords, gameSettings.ActiveCell.coords, piece, PLAYER, !additionalJumpAvailable, jumpedPieces);
 
         // If additional jumps are available, keep the active cell on the landed piece so the player can continue.
         if (additionalJumpAvailable) {
-            setGameSettings({
-                ...gameSettings,
+            setGameSettings(gs => ({
+                ...gs,
                 ActiveCell: { coords: move.coords, piece }
-            })
+            }))
         } else {
-            setGameSettings({
-                ...gameSettings,
+            setGameSettings(gs => ({
+                ...gs,
                 ActiveCell: defaultActiveCell
-            })
+            }))
         }
 
         if (!additionalJumpAvailable) {

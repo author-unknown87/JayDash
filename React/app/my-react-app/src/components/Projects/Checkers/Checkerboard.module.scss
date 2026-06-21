@@ -222,3 +222,10 @@
     /* no background - only render text */
     text-shadow: 0 2px 6px rgba(0,0,0,0.6);
 }
+
+/* fade out and scale down captured pieces before they're removed */
+.CapturedFade {
+    transition: opacity 180ms ease, transform 180ms ease;
+    opacity: 0 !important;
+    transform: scale(0.6) translateY(-6px) !important;
+}

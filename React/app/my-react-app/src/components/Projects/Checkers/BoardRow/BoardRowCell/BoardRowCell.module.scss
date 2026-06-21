@@ -53,6 +53,10 @@
     height: 4rem;
     border-radius: 100%;
     box-shadow: 2px 3px #00000042;
+    will-change: transform, opacity;
+    transform-origin: center;
+    position: relative;
+    z-index: 1; /* ensure puck is below king mark */
 }
 
 .BlackPiece {
@@ -67,4 +71,6 @@
     color: rgb(255, 255, 255);
     height: auto;
     width: 2.25rem;
+    position: relative;
+    z-index: 2; /* place crown above puck so it's visible after animations */
 }

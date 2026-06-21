@@ -57,7 +57,11 @@ export default function BoardRowCell({
                 <div className={`${styles.Cell} ${determineColoring()}`} onClick={handleCellClick}>
                     {hasPuck && (
                         <>
-                            <div className={`${styles.Puck} ${piece && isRed ? styles.RedPiece : styles.BlackPiece}`} />
+                            <div
+                                data-puck-row={row}
+                                data-puck-cell={cell}
+                                className={`${styles.Puck} ${piece && isRed ? styles.RedPiece : styles.BlackPiece}`}
+                            />
                             {isKing && <Crown className={styles.KingMark}/>}
                         </>
                     )}
