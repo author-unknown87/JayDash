@@ -184,19 +184,41 @@
     opacity: 0.35;
 }
 
+/* Active modifier - explicit class for parity with other patterns */
+.nameplateActive {
+    /* No override needed: uses base (light) visuals, but allow subtle emphasis */
+    filter: none;
+}
+
 /* Active Turn header: use same font family/style as the top h1 but smaller and centered */
 .ActiveTurn {
     font-family: "Bangers", system-ui;
     font-style: normal;
-    font-size: 2rem;
+    font-size: 1.25rem;
     font-weight: 400;
     text-align: center;
     width: 100%;
     margin-top: 0.5rem;
 }
 
-/* Active modifier - explicit class for parity with other patterns */
-.nameplateActive {
-    /* No override needed: uses base (light) visuals, but allow subtle emphasis */
-    filter: none;
+/* Board wrapper for overlaying the thinking indicator */
+.BoardWrap {
+    position: relative;
+    display: inline-block; /* shrink to board width */
+}
+
+.ThinkingOverlay {
+    position: absolute;
+    inset: 0; /* top:0; left:0; right:0; bottom:0 */
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none; /* allow clicks to pass through if desired */
+
+    font-family: "Bangers", system-ui;
+    font-size: clamp(1.2rem, 3.3vw, 2.25rem); /* slightly larger */
+    color: #ffffff;
+    /* no background - only render text */
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6);
 }

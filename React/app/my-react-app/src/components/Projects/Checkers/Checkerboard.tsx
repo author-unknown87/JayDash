@@ -111,6 +111,9 @@ export default function Checkerboard ({
     const [playerTurn, setPlayerTurn] = useState<string>(PLAYER);
     const [gameOver, setGameOver] = useState<boolean>(false);
     const [requiredMove, setRequiredMove] = useState<PlayerMove>();
+    // thinking animation state for AI
+    const [thinkingDots, setThinkingDots] = useState<number>(0);
+    const thinkingText = `Thinking${'.'.repeat(thinkingDots)}`;
 
     // ----- Use Effect Definitions ----- //
     useEffect(() => {
@@ -132,6 +135,24 @@ export default function Checkerboard ({
         }
 
     }, [gameState])
+
+    // Manage the "Thinking" animation while Chester (AI) is thinking
+    useEffect(() => {
+        let id: ReturnType<typeof setInterval> | undefined;
+
+        if (playerTurn === CHESTER) {
+            // reset and start interval
+            setThinkingDots(0);
+            id = setInterval(() => {
+                setThinkingDots(d => (d + 1) % 4);
+            }, 200);
+        } else {
+            // ensure reset when not thinking
+            setThinkingDots(0);
+        }
+
+        return () => { if (id) clearInterval(id); }
+    }, [playerTurn])
 
     // ----- Component Methods ----- //
 
@@ -635,27 +656,26 @@ export default function Checkerboard ({
                     <h2 className={!gameOver && styles.Hidden} >Game Over!</h2>
                     <GameMenu onQuit={quitGame} onRestart={restart}/>
                     <GameSettingsContext.Provider value={gameSettings}>
-                        <div className={styles.Board}>
-                            {
-                                gameState.rows.map((row, idx) => {
-                                    return (
-                                        <BoardRow 
-                                            rowNumber={idx} 
-                                            cells={row}
-                                            handleClick={handlePuckClick}
-                                        />
-                                    )
-                                })
-                            }
-                            <div className={styles.ActiveTurn}>Active Turn</div>
-                            <div className={styles.nameplateGroup}>
-                                <div className={`${styles.nameplate} ${playerTurn === PLAYER ? styles.nameplateActive : styles.nameplateInactive}`}>
-                                    Player
-                                </div>
-                                <div className={`${styles.nameplate} ${playerTurn === CHESTER ? styles.nameplateActive : styles.nameplateInactive}`}>
-                                    Chester
-                                </div>
+                        <div className={styles.BoardWrap}>
+                            <div className={styles.Board}>
+                                {
+                                    gameState.rows.map((row, idx) => {
+                                        return (
+                                            <BoardRow 
+                                                rowNumber={idx} 
+                                                cells={row}
+                                                handleClick={handlePuckClick}
+                                            />
+                                        )
+                                    })
+                                }
                             </div>
+
+                            {playerTurn === CHESTER && (
+                                <div className={styles.ThinkingOverlay} role="status" aria-live="polite">
+                                    {thinkingText}
+                                </div>
+                            )}
                         </div>
                     </GameSettingsContext.Provider>
                 </div>
