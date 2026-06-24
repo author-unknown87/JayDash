@@ -5,16 +5,21 @@ import { FileDownIcon, BriefcaseBusinessIcon } from 'lucide-react'
 import { useEffect, useState } from "react";
 import FetchData from '../../hooks/FetchData';
 import { HttpAction } from '../../models/enums';
+import resumeFile from '../../assets/files/Resume.pdf'
+import { 
+    ResumeData
+ } from '../../models/ResumeModels/CommonResumeModels'
 
 import {
     Alert,
     AlertDescription
  } from "../ui/alert"
 
+
 export default function Resume() {
     /** Use States */
     const[isSeeking, setIsSeeking] = useState<boolean>(false);
-    const[resume, setResume] = useState<any>(); // TODO: don't use Any, we have TS, use it
+    const[resume, setResume] = useState<ResumeData>();
 
     /** Helper Methods */
     async function CheckSeekingPositionFlag() {
@@ -27,7 +32,7 @@ export default function Resume() {
     }
 
     async function GetResumeData() {
-        const resumeResponse = await FetchData({
+        const resumeResponse:ResumeData = await FetchData({
             endpoint: "Resume",
             action: HttpAction.Get
         })
@@ -55,7 +60,7 @@ export default function Resume() {
                     <Alert className={`${styles.Alert} ${styles.DownloadAlert}`}>
                         <FileDownIcon className={styles.AlertIcon}/>
                         <AlertDescription>
-                            <a href={resume} download>Download Resume as .PDF</a>
+                            <a href={resumeFile} download>Download Resume as .PDF</a>
                         </AlertDescription>
                     </Alert>
                     <Alert className={`${styles.Alert} ${styles.SeekingPositionAlert} ${!isSeeking ? styles.NotSeeking : ""}`}>

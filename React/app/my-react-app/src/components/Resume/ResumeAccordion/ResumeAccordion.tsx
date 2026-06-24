@@ -31,50 +31,18 @@ import {
 import styles from './ResumeAccordion.module.scss'
 import ResumeTableRow from "./TableRow/ResumeTableRow"
 import React from "react"
+import { 
+    ResumeData, 
+    Skill, 
+    IndustryTool
+ } from "../../../models/ResumeModels/CommonResumeModels"
 
 /* ---------- Interface Definitions */
 
 interface ResumeAccordionProps {
-    resumeData: resumeData
+    resumeData?: ResumeData
 }
 
-interface resumeSkill {
-    primaryKey: number,
-    skillName: string,
-    startDate: string
-}
-
-interface resumeEducation {
-    primaryKey: number,
-    institution: string,
-    description: string,
-    startDate: string,
-    endDate: string,
-    program: string,
-    gpa: string
-}
-
-interface resumeWorkplace {
-    primaryKey: number,
-    companyName: string,
-    position: string,
-    startDate: string,
-    endDate: string,
-    jobDescription: string,
-    currentPosition: boolean
-}
-
-interface resumeTool {
-    primaryKey: number,
-    toolName: string
-}
-
-interface resumeData {
-    skills: resumeSkill[],
-    education: resumeEducation[],
-    workplaces: resumeWorkplace[],
-    industryTools: resumeTool[]
-}
 
 /* ---------- Return Statement */
 
@@ -86,7 +54,7 @@ export default function ResumeAccordion({
     function BuildSkillsTable(): React.ReactElement[] {
         if (!resumeData || !resumeData.skills) return (<></>);
         const tableRows: React.ReactElement[] = [];
-        resumeData.skills.map((skill: resumeSkill) => {
+        resumeData.skills.map((skill: Skill) => {
             const row = (<ResumeTableRow skillName={skill.skillName} startDate={skill.startDate} />);
             tableRows.push(row);
         })
@@ -98,7 +66,7 @@ export default function ResumeAccordion({
         if (!resumeData || !resumeData.industryTools) return (<></>);
 
         const toolsList: React.ReactElement[] = [];
-        resumeData.industryTools.map((tool:resumeTool) => {
+        resumeData.industryTools.map((tool:IndustryTool) => {
             const toolListItem = (<li>{tool.toolName}</li>);
             toolsList.push(toolListItem);
         })
