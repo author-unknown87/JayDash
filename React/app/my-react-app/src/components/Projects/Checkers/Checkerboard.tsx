@@ -122,7 +122,6 @@ export default function Checkerboard ({
     const [gameOver, setGameOver] = useState<boolean>(false);
     const [requiredMove, setRequiredMove] = useState<PlayerMove>();
     const [errorMessage, setErrorMessage] = useState<string>("");
-    const [errorMessageStyle, setErrorMessageStyle] = useState<string>("");
     // thinking animation state for AI
     const [thinkingDots, setThinkingDots] = useState<number>(0);
     const thinkingText = `Thinking${'.'.repeat(thinkingDots)}`;
@@ -147,6 +146,15 @@ export default function Checkerboard ({
         }
 
     }, [gameState])
+
+    // Reset the error message text after 5 seconds
+    useEffect(() => {
+        if (errorMessage !== "") {
+            setTimeout(() => {
+                setErrorMessage("");
+            }, 5000)
+        }
+    }, [errorMessage])
 
     // Manage the "Thinking" animation while Chester (AI) is thinking
     useEffect(() => {
