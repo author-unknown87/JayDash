@@ -89,9 +89,10 @@ function createTestGameState(): GameState {
         }
     }
 
-    board.rows[1][3].piece = "R"
-    board.rows[3][3].piece = "R"
-    board.rows[0][2].piece = "BK";
+    board.rows[1][3].piece = "R";
+    board.rows[3][3].piece = "R";
+    board.rows[4][4].piece = "B";
+    board.rows[0][6].piece = "R";
 
     return board;
 }
@@ -510,7 +511,6 @@ export default function Checkerboard ({
             return;
         }
 
-        // TODO: check for errors and handle gracefully
         const lastIndex = response.move.positions.length - 1;
         const oldSpace:Coords = {
             row: response.move.positions[0].row,
@@ -522,7 +522,6 @@ export default function Checkerboard ({
             cell: response.move.positions[lastIndex].col
         };
 
-        // TODO: figure out what this is from the original coordinates on the board
         const piece = response.pieceMoved;
 
         const jumpedPieces: Coords[] = [];
@@ -640,7 +639,7 @@ export default function Checkerboard ({
                 move.coords.cell !== requiredMove.end.cell
             ) {
                 // Does not match, reset clicks
-                // TODO: again, need error feedback here
+                setErrorMessage("Must finish the current multi-jump move")
                 setGameSettings(gs => ({
                     ...gs,
                     ActiveCell: defaultActiveCell
@@ -667,7 +666,7 @@ export default function Checkerboard ({
             );
 
             if (foundMove.length == 0) {
-                // TODO: this needs to be an error feedback
+                setErrorMessage("You have a required jump!")
                 setGameSettings(gs => ({
                     ...gs,
                     ActiveCell: defaultActiveCell
@@ -681,7 +680,6 @@ export default function Checkerboard ({
             jumpedPieces.push(moveIsJump.jumpedPiece);
         }
 
-        // TODO: Handle this gracefully, with feedback to the user
         if (!moveIsValid) {
                 setGameSettings(gs => ({
                     ...gs,
