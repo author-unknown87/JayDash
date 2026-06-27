@@ -15,6 +15,7 @@ public class WorkplaceRepository(AppDbContext context, ILogger<WorkplaceReposito
     {
         var query = context.Workplaces.AsQueryable();
 
+        // If specification is null, we just take all records
         if (spec is not null)
         {
             query = query.Where(spec.Criteria);

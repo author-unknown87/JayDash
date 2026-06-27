@@ -1,6 +1,6 @@
 import { Pages } from "../../models/enums";
 import { SidebarItems } from "../../models/SidebarItems"
-import { Home, BookType, Headset, Folder} from "lucide-react"
+import { Home, BookType, Headset, Folder } from "lucide-react"
 import styles from './app-sidebar.module.scss'
 import { MarkGithubIcon } from "@primer/octicons-react";
 import { FaLinkedin } from 'react-icons/fa';
@@ -45,13 +45,13 @@ const items = [
     {
         title: "Github",
         url: "https://github.com/author-unknown87/JayDash",
-        icon: Folder,
+        icon: null,
         page: ""
     },
     {
         title: "Linkedin",
         url: "https://www.linkedin.com/in/joshua-gravatt-a45b53139",
-        icon: Folder,
+        icon: null,
         page: ""
     }
 ] satisfies readonly SidebarItems[]

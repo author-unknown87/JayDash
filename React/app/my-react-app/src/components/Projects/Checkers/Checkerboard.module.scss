@@ -1,0 +1,130 @@
+@import '../../../styles/variables';
+
+.MainWrap {
+    display: flex;
+}
+
+.GameAreaWrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 43rem;
+    user-select: none;
+}
+
+.Board {
+    margin-top: 1rem;
+    margin-left: 2rem;
+}
+
+.Row {
+    border: 1px solid black;
+}
+
+.GameAreaWrap h1 {
+    font-family: "Bangers", system-ui;
+    font-style: normal;
+    font-size: 3rem;
+    margin-top: 1rem;
+    font-weight: 400;
+}
+
+.GameAreaWrap span:hover {
+    cursor: pointer;
+    color: $accent;
+}
+
+.GameAreaWrap span:active {
+    color: #fff;
+}
+
+.MoveTracker {
+    display: flex;
+    margin-top: 8rem;
+    width: 18rem;
+    height: 2rem;
+}
+
+.MoveTracker .MoveCue {
+    margin-right: 1rem;
+    font-weight: bold;
+    font-size: 1.25rem;
+    color: #d4d4d4;
+}
+
+.MoveTracker .ActiveCue {
+    color: #000;
+    text-decoration: underline;
+}
+
+.ChatWindow {
+    height: 39rem;
+    background-color: #b6b6b6;
+    border-radius: 8px;
+    box-shadow: inset -2px -4px 6px rgba(0, 0, 0, 0.2);
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.ChatWindow p {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.ChatWindow ul {
+    list-style:circle;
+    margin-left: 1rem;
+}
+
+.ChatWindow li {
+    margin-left: 1rem;
+}
+
+.Hidden {
+    display: none;
+}
+
+.Error {
+    margin-top: 1rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.fadeOut {
+    opacity: 0;
+    transition: opacity 7s ease;
+}
+
+.visible {
+    opacity: 1;
+}
+
+/* Board wrapper for overlaying the thinking indicator */
+.BoardWrap {
+    position: relative;
+    display: inline-block; /* shrink to board width */
+}
+
+.ThinkingOverlay {
+    position: absolute;
+    inset: 0; /* top:0; left:0; right:0; bottom:0 */
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none; /* allow clicks to pass through if desired */
+
+    font-family: "Bangers", system-ui;
+    font-size: clamp(1.2rem, 3.3vw, 2.25rem); /* slightly larger */
+    color: #ffffff;
+    /* no background - only render text */
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+}
+
+/* fade out and scale down captured pieces before they're removed */
+.CapturedFade {
+    transition: opacity 180ms ease, transform 180ms ease;
+    opacity: 0 !important;
+    transform: scale(0.6) translateY(-6px) !important;
+}

@@ -11,7 +11,6 @@ import styles from './App.module.scss'
 
 function App() {
   const [selectedPage, setSelectedPage] = useState<string>(Pages.HomePage)
-
   return (
     <>
         <main className={styles.Main}>

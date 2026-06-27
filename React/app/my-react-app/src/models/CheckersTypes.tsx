@@ -1,0 +1,74 @@
+import React from 'react'
+
+export type GameState = {
+    whoMovedLast: string,
+    moveIsFinished: boolean,
+    rows: GameStateCell[][]
+}
+
+export type GameStateCell = {
+    row: number,
+    cell: number,
+    piece: string
+};
+
+export type Coords = {
+    row: number,
+    cell: number
+}
+
+export type Move = {
+    coords: Coords,
+    piece: string
+}
+
+export type PlayerMove = {
+    start: Coords
+    end: Coords
+}
+
+export type ActiveCell = {
+    coords: Coords,
+    piece: string
+}
+
+export type GameSettings = {
+    ActiveCell: ActiveCell,
+    Blocked: boolean
+}
+
+export const GameSettingsContext = React.createContext<GameSettings>({
+    ActiveCell: {
+        coords: {row: -1, cell: -1},
+        piece: ""
+    },
+    Blocked: false
+})
+
+export const ActiveCellContext = React.createContext<ActiveCell>({
+    coords: {
+        row: -1,
+        cell: -1
+    },
+    piece: ""
+})
+
+export type Position = {
+    col: number,
+    row: number,
+    playOrder: number
+}
+
+export type AIMove = {
+    jumpedPieces: Coords[],
+    positions: Position[],
+    pieceMoved: string
+}
+
+export type AIResponse = {
+    endOfGame: boolean,
+    isError: boolean,
+    move: AIMove,
+    pieceMoved: string
+}
+

@@ -1,0 +1,73 @@
+import styles from './BoardRowCell.module.scss'
+import { useContext } from 'react'
+import { GameSettingsContext } from '../../../../../models/CheckersTypes'
+import { Move } from '../../../../../models/CheckersTypes'
+import { Crown } from 'lucide-react'
+
+// ----- Local Types ----- //
+interface BoardRowCellProps {
+    hasPuck: boolean,
+    color: string
+    piece?: string,
+    row: number,
+    cell: number,
+    handleClick: (move: Move) => void
+}
+
+export default function BoardRowCell({
+    hasPuck,
+    piece,
+    color,
+    row,
+    cell,
+    handleClick
+}: BoardRowCellProps) {
+    // ----- Component Variables ----- //
+    const isRed = piece?.includes("R");
+    const isKing = piece?.includes("K");
+    const gameSettings = useContext(GameSettingsContext);
+
+    // ----- Component Methods ----- //
+    function determineColoring(): string {
+        // check if coords for active cell match current cell
+        if (gameSettings.ActiveCell.coords.row === row && gameSettings.ActiveCell.coords.cell === cell) {
+            return styles.Highlighted;
+        }
+
+        // otherwise, evaluate light or dark coloring
+        return (color === 'light' ? styles.Light : styles.Dark);
+    }
+
+    function handleCellClick() {
+        if (color === 'light' || isRed) return;
+        const newMove:Move = {
+            coords: {
+                row: row,
+                cell: cell
+            },
+            piece: piece ? piece : ""
+        }
+        handleClick(newMove)
+    }
+
+    // ----- Component Return ----- //
+    return (
+        <>
+            <div className={styles.CellContainer}>
+                <div className={`${styles.Cell} ${determineColoring()}`} onClick={handleCellClick}>
+                    {hasPuck && (
+                        <>
+                            <div
+                                data-puck-row={row}
+                                data-puck-cell={cell}
+                                className={`${styles.Puck} ${piece && isRed ? styles.RedPiece : styles.BlackPiece}`}
+                            />
+                            {isKing && <Crown className={styles.KingMark}/>}
+                        </>
+                    )}
+                </div>
+                {gameSettings.Blocked && <div className={styles.CellBlock}></div>}
+            </div>
+        </>
+    )
+}

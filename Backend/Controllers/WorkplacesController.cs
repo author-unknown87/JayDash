@@ -21,7 +21,11 @@ public class WorkplacesController(IWorkplaceRepository repository) : ControllerB
     [HttpGet("by-name")]
     public async Task<ActionResult<WorkplaceModel>> GetWorkplaceByCompanyName([FromQuery] string companyName, CancellationToken cancellationToken = default)
     {
-        // TODO: need to validate data
+        if (string.IsNullOrWhiteSpace(companyName))
+        {
+            return BadRequest("Company Name cannot be empty or null");
+        }
+
         var companyNameSpec = new GetWorkplaceByCompanyNameSpec(companyName);
         var workplace = await repository.GetAllWorkplaces(cancellationToken, companyNameSpec);
         var baseResponse = new APIBaseResponse()
