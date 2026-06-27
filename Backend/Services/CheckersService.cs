@@ -215,12 +215,12 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
                     moveToCheck.move.Positions.Last().Col);
 
                 // check right
-                var rightPoint = new Coords(row: startPoint.Row + rowDelta, col: startPoint.Col + 2);
+                var rightPoint = new Coords(row: startPoint.Row + rowDelta, col: startPoint.Cell + 2);
                 var rightValidationResponse = this.checkJumpCoordinates(startPoint, rightPoint, board);
                 var rightIsValid = rightValidationResponse.isValid;
 
                 // check left
-                var leftPoint = new Coords(row: startPoint.Row + rowDelta, col: startPoint.Col - 2);
+                var leftPoint = new Coords(row: startPoint.Row + rowDelta, col: startPoint.Cell - 2);
                 var leftValidationResponse = this.checkJumpCoordinates(startPoint, leftPoint, board);
                 var leftIsValid = leftValidationResponse.isValid;
 
@@ -234,7 +234,7 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
                     // Add left position to newly created move
                     var currentPositions = new List<PuckPosition>();
                     currentPositions.AddRange(moveToCheck.move.Positions);
-                    currentPositions.Add(new PuckPosition(leftPoint.Row, leftPoint.Col, nextPlayOrder));
+                    currentPositions.Add(new PuckPosition(leftPoint.Row, leftPoint.Cell, nextPlayOrder));
                     newMoves.Add(new MoveToCheck()
                     {
                         finishedValidation = false,
@@ -247,18 +247,18 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
                     });
 
                     // Add right position to existing move
-                    var nextPosition = new PuckPosition(rightPoint.Row, rightPoint.Col, nextPlayOrder);
+                    var nextPosition = new PuckPosition(rightPoint.Row, rightPoint.Cell, nextPlayOrder);
                     moveToCheck.move.Positions.Add(nextPosition);
                     moveToCheck.move.JumpedPieces.Add(rightValidationResponse.jumpedPiece!);
                 }
                 else if (rightIsValid && !leftIsValid)
                 {
-                    moveToCheck.move.Positions.Add(new PuckPosition(rightPoint.Row, rightPoint.Col, nextPlayOrder));
+                    moveToCheck.move.Positions.Add(new PuckPosition(rightPoint.Row, rightPoint.Cell, nextPlayOrder));
                     moveToCheck.move.JumpedPieces.Add(rightValidationResponse.jumpedPiece!);
                 }
                 else if (!rightIsValid && leftIsValid)
                 {
-                    moveToCheck.move.Positions.Add(new PuckPosition(leftPoint.Row, leftPoint.Col, nextPlayOrder));
+                    moveToCheck.move.Positions.Add(new PuckPosition(leftPoint.Row, leftPoint.Cell, nextPlayOrder));
                     moveToCheck.move.JumpedPieces.Add(leftValidationResponse.jumpedPiece!);
                 }
                 else if (!rightIsValid && !leftIsValid)
@@ -283,18 +283,18 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
     /// <returns>A tuple indicating whether the jump is valid and the coordinates of the jumped piece, if any.</returns>
     internal (bool isValid, Coords? jumpedPiece) checkJumpCoordinates(Coords startPoint, Coords endPoint, GameBoard board)
     {
-        var colDelta = endPoint.Col > startPoint.Col ? 1 : -1;
+        var colDelta = endPoint.Cell > startPoint.Cell ? 1 : -1;
         var rowDelta = endPoint.Row > startPoint.Row ? 1 : -1;
 
         var targetRow = board.Rows.FirstOrDefault(r => r.RowNumber == endPoint.Row);
         var nextRow = board.Rows.FirstOrDefault(r => r.RowNumber == startPoint.Row + rowDelta);
         if (targetRow is null || nextRow is null) return (false, null);
 
-        var targetCol = startPoint.Col + colDelta;
+        var targetCol = startPoint.Cell + colDelta;
         var cellToJump = nextRow.Cells.FirstOrDefault(c => c.Col == targetCol);
         if (cellToJump is null || !cellToJump.HasPuck || cellToJump.Puck.Color == PuckColor.Red) return (false, null);
 
-        var cellJumpingTo = targetRow.Cells.FirstOrDefault(c => c.Col == endPoint.Col);
+        var cellJumpingTo = targetRow.Cells.FirstOrDefault(c => c.Col == endPoint.Cell);
         if (cellJumpingTo is null || cellJumpingTo.HasPuck) return (false, null);
 
         return (true, new Coords(cellToJump.Row, cellToJump.Col));
@@ -332,6 +332,7 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
     internal async Task<Move?> PostGameToAI(GameBoard board, List<Move> validMoves, CancellationToken cancellationToken)
     {
         var key = _config["OpenAI:ApiKey"];
+        var model = _config["OpenAI:Model"];
         #pragma warning disable OPENAI001
         var client = new ResponsesClient(apiKey: key);
 #pragma warning restore OPENAI001
@@ -340,26 +341,20 @@ public class CheckersService(IConfiguration _config, ILogger<CheckersService> _l
 
         if (string.IsNullOrWhiteSpace(prompt)) return default;
 
-        var topLimit = validMoves.Count();
-        var rand = new Random();
-        var chosenMove = rand.Next(1, topLimit);
-        return validMoves.ElementAt(chosenMove - 1);
+        var response = await client.CreateResponseAsync(model: model,
+            userInputText: prompt);
 
-        // TODO: Setup the model string so it is a config value, NOT hard coded
-        //var response = await client.CreateResponseAsync(model: "gpt-5.4-mini",
-        //    userInputText: prompt);
+        var rawAIResponse = response.Value.GetOutputText();
 
-        //var rawAIResponse = response.Value.GetOutputText();
-
-        //if (int.TryParse(rawAIResponse, out var result))
-        //{
-        //    return validMoves.ElementAt(result - 1);
-        //}
+        if (int.TryParse(rawAIResponse, out var result))
+        {
+            return validMoves.ElementAt(result - 1);
+        }
 
 
-        // Error in response from AI 
-        //_logger.LogError("AI response was not able to parse into an INT.  Raw response: {response}", rawAIResponse);
-        //return default;
+        //Error in response from AI
+        _logger.LogError("AI response was not able to parse into an INT.  Raw response: {response}", rawAIResponse);
+        return default;
     }
 
     /// <summary>
