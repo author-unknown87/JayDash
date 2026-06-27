@@ -53,3 +53,26 @@ export const ActiveCellContext = React.createContext<ActiveCell>({
     piece: ""
 })
 
+export type Position = {
+    col: number,
+    row: number,
+    playOrder: number
+}
+
+export type JumpedPiece = {
+    something: string
+}
+
+export type AIMove = {
+    jumpedPieces: JumpedPiece[],
+    positions: Position[],
+    pieceMoved: string
+}
+
+export type AIResponse = {
+    endOfGame: boolean,
+    isError: boolean,
+    move: AIMove,
+    pieceMoved: string
+}
+

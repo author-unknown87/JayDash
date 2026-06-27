@@ -1,7 +1,17 @@
 import styles from './Checkerboard.module.scss'
 import BoardRow from './BoardRow/BoardRow'
 import GameMenu from './GameMenu/GameMenu'
-import { GameState, GameStateCell, Coords, GameSettingsContext, Move, ActiveCell, PlayerMove, GameSettings } from '../../../models/CheckersTypes'
+import { 
+    GameState,
+    GameStateCell, 
+    Coords, 
+    GameSettingsContext, 
+    Move, 
+    ActiveCell, 
+    PlayerMove,
+    AIResponse,
+    GameSettings
+ } from '../../../models/CheckersTypes'
 import { useState, useEffect } from 'react'
 import FetchData from '../../../hooks/FetchData'
 
@@ -478,7 +488,7 @@ export default function Checkerboard ({
 
     async function requestAIMove() {
         const serializedBoard = JSON.stringify(gameState);
-        const response = await FetchData({
+        const response:AIResponse = await FetchData({
             endpoint: "Checkers/GetMoveFromAI",
             action: "POST",
             postData: { BoardState: serializedBoard }
@@ -489,7 +499,6 @@ export default function Checkerboard ({
             return;
         }
 
-        // TODO: tie this to an actual model
         // TODO: check for errors and handle gracefully
         const lastIndex = response.move.positions.length - 1;
         const oldSpace:Coords = {
