@@ -59,12 +59,8 @@ export type Position = {
     playOrder: number
 }
 
-export type JumpedPiece = {
-    something: string
-}
-
 export type AIMove = {
-    jumpedPieces: JumpedPiece[],
+    jumpedPieces: Coords[],
     positions: Position[],
     pieceMoved: string
 }

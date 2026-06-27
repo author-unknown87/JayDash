@@ -85,120 +85,24 @@
     display: none;
 }
 
-/* Wooden nameplate - light tone, responsive, engraved text look */
-.nameplate {
-    --max-w: 22rem; /* cap width */
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    max-width: var(--max-w);
-    padding: 0.6rem 1rem;
-    margin: 0.5rem 0;
-    border-radius: 8px;
-    position: relative;
-    overflow: hidden;
-
-    /* light wood gradient */
-    background: linear-gradient(180deg, #f7e0b9 0%, #ecc58a 40%, #d1a063 100%);
-
-    /* outer and inner bevel to read as a carved plate */
-    box-shadow:
-        0 10px 18px rgba(0,0,0,0.28), /* desk shadow */
-        inset 0 6px 10px rgba(255,255,255,0.06),
-        inset 0 -6px 12px rgba(0,0,0,0.18);
-
-    border: 1px solid rgba(0,0,0,0.18);
-
-    /* engraved text styling */
-    color: #3a1e09; /* dark brown */
-    font-weight: 700;
-    font-size: clamp(0.9rem, 2.4vw, 1.15rem);
-    letter-spacing: 0.01em;
-    /* subtle dual-shadow to simulate recessed engraving */
-    text-shadow:
-        -0.6px -0.6px 0 rgba(255,255,255,0.55), /* top highlight */
-        1px 1px 2px rgba(0,0,0,0.6); /* bottom shadow */
-}
-
-/* wood grain overlay */
-.nameplate::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    border-radius: inherit;
-    opacity: 0.85;
-    mix-blend-mode: multiply;
-    background-image:
-        repeating-linear-gradient(90deg, rgba(0,0,0,0.03) 0 1px, rgba(0,0,0,0) 1px 12px),
-        linear-gradient(120deg, rgba(255,255,255,0.03), rgba(0,0,0,0.04));
-    transform: rotate(-1deg) scaleY(1.02);
-}
-
-/* polished top highlight */
-.nameplate::after {
-    content: "";
-    position: absolute;
-    left: 6%;
-    right: 6%;
-    top: 6%;
-    height: 34%;
-    border-radius: 6px;
-    pointer-events: none;
-    background: linear-gradient(180deg, rgba(255,255,255,0.36), rgba(255,255,255,0));
-    mix-blend-mode: overlay;
-    opacity: 0.75;
-    transform: skewY(-2deg);
-}
-
-/* Make sure plate scales well in the existing layout when used inline */
-.MainWrap .nameplate,
-.GameAreaWrap .nameplate {
-    max-width: 18rem;
-}
-
-/* Group wrapper to control spacing between plates */
-.nameplateGroup {
-    display: flex;
-    gap: 1rem; /* space between plates */
+.Error {
     margin-top: 1rem;
-    flex-wrap: wrap; /* stack responsively on small screens */
+    font-size: 1.5rem;
+    font-weight: bold;
 }
 
-/* Inactive plate: same styling but darker tone */
-.nameplateInactive {
-    /* noticeably darker wood tone for inactive state */
-    background: linear-gradient(180deg, #d4b67f 0%, #a56f3f 45%, #6b3d20 100%);
-    box-shadow:
-        0 10px 20px rgba(0,0,0,0.46),
-        inset 0 6px 12px rgba(0,0,0,0.06),
-        inset 0 -6px 14px rgba(0,0,0,0.36);
-    color: #1f1106;
+.fadeOut {
+    opacity: 0;
+    transition: opacity 5s ease;
 }
 
-/* Reduce shine for inactive plates */
-.nameplateInactive::after {
-    /* lower opacity highlight so inactive plates look less glossy */
-    opacity: 0.35;
+.fadeIn {
+    opacity: 1;
+    transition: opacity 3s ease;
 }
 
-/* Active modifier - explicit class for parity with other patterns */
-.nameplateActive {
-    /* No override needed: uses base (light) visuals, but allow subtle emphasis */
-    filter: none;
-}
-
-/* Active Turn header: use same font family/style as the top h1 but smaller and centered */
-.ActiveTurn {
-    font-family: "Bangers", system-ui;
-    font-style: normal;
-    font-size: 1.25rem;
-    font-weight: 400;
-    text-align: center;
-    width: 100%;
-    margin-top: 0.5rem;
+.visible {
+    opacity: 1;
 }
 
 /* Board wrapper for overlaying the thinking indicator */

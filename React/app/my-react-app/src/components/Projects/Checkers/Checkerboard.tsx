@@ -121,6 +121,8 @@ export default function Checkerboard ({
     const [playerTurn, setPlayerTurn] = useState<string>(PLAYER);
     const [gameOver, setGameOver] = useState<boolean>(false);
     const [requiredMove, setRequiredMove] = useState<PlayerMove>();
+    const [errorMessage, setErrorMessage] = useState<string>("");
+    const [errorMessageStyle, setErrorMessageStyle] = useState<string>("");
     // thinking animation state for AI
     const [thinkingDots, setThinkingDots] = useState<number>(0);
     const thinkingText = `Thinking${'.'.repeat(thinkingDots)}`;
@@ -173,6 +175,7 @@ export default function Checkerboard ({
         setPlayerTurn(PLAYER);
         setGameOver(false);
         setRequiredMove(undefined)
+        setErrorMessage("");
     }
 
     function CheckIfPlayerHasMoves(): boolean {
@@ -518,7 +521,7 @@ export default function Checkerboard ({
         response.move.jumpedPieces.forEach((piece) => {
             const jumpedPiece: Coords = {
                 row: piece.row,
-                cell: piece.col
+                cell: piece.cell
             };
 
             jumpedPieces.push(jumpedPiece);
@@ -676,6 +679,7 @@ export default function Checkerboard ({
                     ...gs,
                     ActiveCell: defaultActiveCell
                 }))
+                setErrorMessage("Sorry, but that is not a legal move!")
             return;
         }
 
@@ -781,6 +785,7 @@ export default function Checkerboard ({
                             )}
                         </div>
                     </GameSettingsContext.Provider>
+                    <div className={`${styles.Error} ${errorMessage != "" ? styles.fadeOut : styles.visible}`}>{errorMessage}</div>
                 </div>
             </div>
         </>
