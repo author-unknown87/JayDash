@@ -1,6 +1,7 @@
 import styles from './Home.module.scss';
 import Header from '../Header/Header'
 import headshot from '../../assets/Headshot.jpg'
+import { HomeCard } from './HomeCard/HomeCard'
 
 export default function Home() {
     return (
@@ -12,18 +13,22 @@ export default function Home() {
                         <img src={headshot} alt="Professional Headshot" />
                         <div className={styles.BlurbArea}>
                             <p className={styles.BlurbHeader}>Joshua Gravatt</p>
-                            <div className={styles.BlurbBit}>
-                                <h1>Driven</h1>
-                                <p>I am, first and foremost, a dedicated problem solver.  In my working life I’ve shifted gears between three different careers in customer service, data analysis, and software development.  In each case the most satisfying aspects of my work boiled down to the same three-step dance: identify, strategize, and solve.  There’s an intrinsic joy for me in hunting down the bug, designing and implementing the right feature, or refactoring tech debt with just the right design pattern.  I relish the challenge and thrive in mental gridlock.  That being said: brick walls happen.  Developers get stuck and spin their wheels and I am no different.  Collaboration is a strength and no developer is an island.  I have learned from early mistakes and understand seeking a team’s support, or offering it, is key to our long-term strength as software developers.</p>
-                            </div>
-                            <div className={styles.BlurbBit}>
-                                <h1>Growth Minded</h1>
-                                <p>Stagnation is an easy trap to fall victim to.  Seeking growth, nurturing the right mindset, is the only way to reliably sidestep this pitfall.  Yet growth isn’t easy—it takes courage because the alternative is feeling comfortable and safe with where you are and what you know.  There is bravery in honest ignorance openly admitted, and with that comes the freedom to correct it.  But there are limits and while we’re developers seeking constant growth we’re also people with mortgages, car payments, and kids.  A driven, growth mindset is a powerful gift but as with all things, moderation is key.</p>
-                            </div>
-                            <div className={styles.BlurbBit}>
-                                <h1>Balanced</h1>
-                                <p>Burnout can be just as insidious a trap as stagnation and, enjoy our work as we may, even the most driven developers need down time.  Some of the most talented teammates I’ve known pursued completely offline, non-technical hobbies to balance their lives.  I’ve known gardeners, beekeepers, chicken farmers, chefs, bakers, and community theater stage managers.  All of whom were talented, creative developers by day.  I prefer to play tabletop games, bake, cook, and sew as the mood strikes.  The activities and hobbies don’t necessarily matter as much as the mental relaxation they provide.  As developers we (hopefully) love what we do, but it shouldn’t be all that we do or all that we are.</p>
-                            </div>
+                            <HomeCard  
+                                title={"Who I Am"} 
+                                content={"I'm a full-stack software developer who enjoys building new features, improving existing systems, and solving the kinds of problems that require digging beneath the surface. I work across both backend and frontend development, with experience in C#, .NET, SQL, and React, and I enjoy seeing a feature through from concept to implementation."}
+                            />
+                            <HomeCard  
+                                title={"What I Enjoy"} 
+                                content={"What keeps me interested in software development is creative problem solving. Whether I'm debugging a difficult issue, refactoring a system to reduce technical debt, or integrating new technology, I enjoy understanding how systems work and finding practical solutions that make them better."}
+                            />
+                            <HomeCard  
+                                title={"What I've Done"} 
+                                content={"My work has primarily focused on full-stack development, often involving complete end-to-end ownership of features rather than specializing in only backend or frontend work. I've built and maintained RESTful APIs, SOAP services, internal tools, automation scripts, and supporting applications that solve real business problems.  Over time I've learned to adapt quickly to whatever a project requires. That has meant writing Python scripts to automate deployment tasks, standing up web applications to streamline internal processes, creating intermediary services for ETL workflows, and learning third-party systems to support customer integrations."}
+                            />
+                            <HomeCard 
+                                title={"What I Value"}
+                                content={"I place a strong emphasis on maintainability and long-term design. I believe technical debt becomes significantly more expensive when ignored, and I value building systems that can evolve as requirements change rather than creating short-term solutions that become future obstacles.  While I value persistence and independent problem solving, I also recognize that development is a collaborative process. Working through challenges with teammates, sharing knowledge, and maintaining momentum across a team is just as important as solving the problem itself."}
+                            />
                         </div>
                     </div>
                 </div>
