@@ -2,7 +2,8 @@ export const Pages = {
     HomePage: "HomePage",
     Contact: "Contact",
     Resume: "Resume",
-    Projects: "Projects"
+    Projects: "Projects",
+    IntroVideo: "IntroVideo"
 }
 
 export const HttpAction = {

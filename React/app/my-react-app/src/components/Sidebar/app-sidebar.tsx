@@ -1,6 +1,6 @@
 import { Pages } from "../../models/enums";
 import { SidebarItems } from "../../models/SidebarItems"
-import { Home, BookType, Headset, Folder } from "lucide-react"
+import { Home, BookType, Headset, Folder, MonitorPlay } from "lucide-react"
 import styles from './app-sidebar.module.scss'
 import { MarkGithubIcon } from "@primer/octicons-react";
 import { FaLinkedin } from 'react-icons/fa';
@@ -29,6 +29,12 @@ const items = [
         url: "#",
         icon: BookType,
         page: Pages.Resume
+    },
+    {
+        title: "Video Intro",
+        url: "#",
+        icon: MonitorPlay,
+        page: Pages.IntroVideo
     },
     {
         title: "Contact",
