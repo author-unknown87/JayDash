@@ -8,6 +8,7 @@ import Resume from './components/Resume/Resume';
 import Contact from './components/Contact/Contact';
 import Projects from './components/Projects/Projects';
 import styles from './App.module.scss'
+import IntroVideo from './components/IntroVideo/IntroVideo';
 
 function App() {
   const [selectedPage, setSelectedPage] = useState<string>(Pages.HomePage)
@@ -28,6 +29,10 @@ function App() {
           )}
           {selectedPage === Pages.Projects && (
             <Projects />
+          )}
+          {
+            selectedPage === Pages.IntroVideo && (
+              <IntroVideo />
           )}
           {/* <SidebarTrigger />  */}
         </main>

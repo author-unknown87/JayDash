@@ -3,6 +3,7 @@ import styles from './Projects.module.scss'
 import ProjectCard from './ProjectCard/ProjectCard'
 import Checkerboard from './Checkers/Checkerboard'
 import { useState} from 'react'
+import checkers from './../../assets/Checkers.jpg'
 
 export default function Projects() {
     /*----- UseState Definitions ----- */
@@ -29,31 +30,7 @@ export default function Projects() {
                                 description={"Play a rousing game of Checkers with Chester, your friendly neighborhood A.I."}
                                 onClick={() => toggleCheckers()}
                             >
-                                <h1>IMAGE HERE</h1>
-                            </ProjectCard>
-                            <ProjectCard
-                                title={"Mini Dojo Game"}
-                                description={"A digitized version of a small tabletop game"}
-                            >
-                                <h1>IMAGE HERE</h1>
-                            </ProjectCard>
-                            <ProjectCard
-                                title={"Potential Project Title"}
-                                description={"Some descriptive text of this project"}
-                            >
-                                <h1>IMAGE HERE</h1>
-                            </ProjectCard>
-                            <ProjectCard
-                                title={"Potential Project Title"}
-                                description={"Some descriptive text of this project"}
-                            >
-                                <h1>IMAGE HERE</h1>
-                            </ProjectCard>
-                            <ProjectCard
-                                title={"Potential Project Title"}
-                                description={"Some descriptive text of this project"}
-                            >
-                                <h1>IMAGE HERE</h1>
+                                <img src={checkers} alt="Image of Checkers Board" />
                             </ProjectCard>
                         </div>
                         </>
