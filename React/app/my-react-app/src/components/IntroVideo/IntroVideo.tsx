@@ -20,7 +20,7 @@ export default function IntroVideo() {
                     </CardHeader>
                     <CardContent>
                         <div className={styles.Video}>
-                            <iframe width="560" height="315" src="https://www.youtube.com/embed/jtqtDPOyYNI?si=V5ye78BPlfsXxWpN" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+                            <p>Video recording pending</p>
                         </div>
                     </CardContent>
                 </Card>
